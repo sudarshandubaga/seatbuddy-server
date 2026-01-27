@@ -32,14 +32,14 @@ class HomeController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Library data',
-                'data' => $user->library
+                'data' => $user->load("library")
             ]);
         }
 
         return response()->json([
             'status' => true,
             'message' => 'User data',
-            'data' => $user
+            'data' => $user->load(["student", "library"])
         ]);
     }
 }

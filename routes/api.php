@@ -41,6 +41,5 @@ Route::group(['prefix' => 'library-app'], function () {
             'slot-package' => SlotPackageController::class,
             'student' => StudentController::class
         ]);
-
     });
 });
