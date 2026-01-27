@@ -10,9 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        Schema::dropIfExists('expenses');
+
         Schema::create('expenses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('library_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('library_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
             $table->decimal('amount', 10, 2);
