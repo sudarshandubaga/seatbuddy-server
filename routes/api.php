@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Library App Android Routes
 Route::group(['prefix' => 'library-app'], function () {
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'doLogin']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
