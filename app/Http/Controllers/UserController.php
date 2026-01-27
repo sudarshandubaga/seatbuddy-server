@@ -28,6 +28,7 @@ class UserController extends Controller
             'role' => 'required|string|in:admin,library,user',
         ]);
 
+        $validated['login_name'] = $validated['email'];
         $validated['password'] = Hash::make($validated['password']);
 
         $user = User::create($validated);
