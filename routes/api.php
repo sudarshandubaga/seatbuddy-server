@@ -36,9 +36,7 @@ Route::group(['prefix' => 'library-app'], function () {
 
         Route::post('/startup', [HomeController::class, 'startup']);
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
-        // Route::get('/attendance', [AttendanceController::class, 'index']); // library data
         Route::get('/attendance/show', [AttendanceController::class, 'show']); // student data
-        Route::post('/update-no-of-seats', [LibraryController::class, 'updateNoOfSeats']);
         Route::post('/enquiry/bulk-destroy', [EnquiryController::class, 'bulkDestroy']);
         Route::apiResources([
             'slot-package' => SlotPackageController::class,

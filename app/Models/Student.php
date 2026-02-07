@@ -13,6 +13,8 @@ class Student extends Model
         'father_name',
         'slot_package_id',
         'notes',
+        'seat_no',
+        'day_of_billing',
     ];
 
     public function user()

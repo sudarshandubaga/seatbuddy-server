@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Seat;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -14,11 +15,34 @@ class SeatController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = auth()->user()->load("library");
 
-        return response()->json(
-            Seat::where('library_id', $user->library_id)->get()
-        );
+        $seats = Seat::where('library_id', $user->library->id)->get();
+
+        // Fetch students with seat assignments for this library
+        $students = Student::with('user')
+            ->whereNotNull('seat_no')
+            ->whereHas('user', function ($q) use ($user) {
+                $q->where('library_id', $user->library->id);
+            })
+            ->get();
+
+        // Map students to seats
+        $seats->transform(function ($seat) use ($students) {
+            $seatAllocations = $students->where('seat_no', (string) $seat->seat_no);
+
+            $seat->allocations = $seatAllocations->map(function ($student) {
+                return [
+                    'slot' => 'F', // Default to Full Day as slot info is not yet on Student
+                    'studentName' => $student->user->name,
+                    'studentId' => $student->user->login_name ?? $student->user->id,
+                ];
+            })->values();
+
+            return $seat;
+        });
+
+        return response()->json($seats);
     }
 
     /**
@@ -26,7 +50,7 @@ class SeatController extends Controller
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load("library");
 
         $request->validate([
             'prefix' => 'nullable|string',
@@ -40,7 +64,7 @@ class SeatController extends Controller
         }
 
         $existingSeats = Seat::whereIn('seat_no', $requestedSeats)
-            ->where('library_id', $user->library_id)
+            ->where('library_id', $user->library->id)
             ->pluck('seat_no')
             ->toArray();
 
@@ -56,7 +80,7 @@ class SeatController extends Controller
         $seats = [];
         foreach ($requestedSeats as $seatNo) {
             $seats[] = Seat::create([
-                'library_id' => $user->library_id,
+                'library_id' => $user->library->id,
                 'seat_no' => $seatNo,
             ]);
         }
@@ -80,14 +104,14 @@ class SeatController extends Controller
      */
     public function update(Request $request, Seat $seat)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load("library");
 
         $request->validate([
             'seat_no' => [
                 'required',
                 'string',
                 Rule::unique('seats')->where(function ($query) use ($user) {
-                    return $query->where('library_id', $user->library_id);
+                    return $query->where('library_id', $user->library->id);
                 })->ignore($seat->id),
             ],
         ]);
