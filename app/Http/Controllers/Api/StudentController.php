@@ -11,12 +11,20 @@ use Illuminate\Support\Str;
 class StudentController extends Controller
 {
     // 🔹 LIST
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        return response()->json(
-            User::with('student')->where('library_id', $user->library_id)->where('role', 'student')->get()
-        );
+        $query = User::with('student')
+            ->where('library_id', $user->library_id)
+            ->where('role', 'student');
+
+        if ($request->has('unallocated') && $request->unallocated == 'true') {
+            $query->whereHas('student', function ($q) {
+                $q->whereNull('seat_no');
+            });
+        }
+
+        return response()->json($query->get());
     }
 
     // 🔹 STORE
@@ -86,11 +94,12 @@ class StudentController extends Controller
             'father_name' => 'nullable',
             'notes' => 'nullable',
             'day_of_billing' => 'nullable',
+            'seat_no' => 'nullable',
         ]);
 
         $student->user->update($request->only('name', 'email', 'phone'));
 
-        $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing'));
+        $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing', 'seat_no'));
 
         return response()->json([
             'message' => 'Student updated successfully',

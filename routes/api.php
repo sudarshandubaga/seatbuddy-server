@@ -38,6 +38,7 @@ Route::group(['prefix' => 'library-app'], function () {
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
         Route::get('/attendance/show', [AttendanceController::class, 'show']); // student data
         Route::post('/enquiry/bulk-destroy', [EnquiryController::class, 'bulkDestroy']);
+        Route::post('/seat/unallocate', [SeatController::class, 'unallocate']);
         Route::apiResources([
             'slot-package' => SlotPackageController::class,
             'student' => StudentController::class,

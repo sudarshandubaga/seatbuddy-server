@@ -34,6 +34,7 @@ class SeatController extends Controller
                     'slot' => 'F', // Default to Full Day as slot info is not yet on Student
                     'studentName' => $student->user->name,
                     'studentId' => $student->user->login_name ?? $student->user->id,
+                    'studentRecordId' => $student->id,
                 ];
             })->values();
 
@@ -119,6 +120,29 @@ class SeatController extends Controller
         return response()->json([
             'message' => 'Seat updated successfully',
             'data' => $seat
+        ]);
+    }
+
+    /**
+     * Unallocate a student from a seat.
+     */
+    public function unallocate(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:students,id', // Assuming student_id is the ID of the student record, not user_id
+        ]);
+
+        $student = Student::findOrFail($request->student_id);
+
+        // Security check: ensure student belongs to the same library
+        if ($student->library_id !== auth()->user()->library_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $student->update(['seat_no' => null]);
+
+        return response()->json([
+            'message' => 'Student unallocated successfully'
         ]);
     }
 
