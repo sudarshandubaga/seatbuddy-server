@@ -22,9 +22,7 @@ class SeatController extends Controller
         // Fetch students with seat assignments for this library
         $students = Student::with('user')
             ->whereNotNull('seat_no')
-            ->whereHas('user', function ($q) use ($user) {
-                $q->where('library_id', $user->library->id);
-            })
+            ->where('library_id', $user->library->id)
             ->get();
 
         // Map students to seats

@@ -10,6 +10,7 @@ class Student extends Model
     use HasUuids;
     protected $fillable = [
         'user_id',
+        'library_id',
         'father_name',
         'slot_package_id',
         'notes',
@@ -25,5 +26,10 @@ class Student extends Model
     public function slotPackage()
     {
         return $this->belongsTo(SlotPackage::class);
+    }
+
+    public function library()
+    {
+        return $this->belongsTo(Library::class);
     }
 }

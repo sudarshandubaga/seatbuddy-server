@@ -52,6 +52,7 @@ class StudentController extends Controller
         $student = Student::create([
             'id' => Str::uuid(),
             'user_id' => $user->id,
+            'library_id' => $authUser->library_id,
             'father_name' => $request->father_name,
             'slot_package_id' => $request->slot_package_id,
             'notes' => $request->notes,
