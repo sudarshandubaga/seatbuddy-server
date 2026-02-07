@@ -56,6 +56,7 @@ class StudentController extends Controller
             'slot_package_id' => $request->slot_package_id,
             'notes' => $request->notes,
             'day_of_billing' => $request->day_of_billing,
+            'seat_no' => $request->seat_no,
         ]);
 
         return response()->json([

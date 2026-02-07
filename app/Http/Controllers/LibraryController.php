@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Library;
+use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 
 class LibraryController extends Controller
@@ -25,6 +26,8 @@ class LibraryController extends Controller
             'code' => 'required|string|unique:libraries,code',
             'user_id' => 'required|exists:users,id',
             'logo' => 'nullable|image|max:2048',
+            'no_of_tables' => 'nullable|integer',
+            'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
         ]);
 
         if ($request->hasFile('logo')) {
@@ -55,6 +58,8 @@ class LibraryController extends Controller
             'code' => 'string|unique:libraries,code,' . $library->id,
             'user_id' => 'exists:users,id',
             'logo' => 'nullable|image|max:2048',
+            'no_of_tables' => 'nullable|integer',
+            'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
         ]);
 
         if ($request->hasFile('logo')) {
@@ -71,5 +76,21 @@ class LibraryController extends Controller
     {
         $library->delete();
         return response()->noContent();
+    }
+
+    public function getSubscriptionPlans()
+    {
+        return SubscriptionPlan::all();
+    }
+
+    public function updateNoOfSeats(Request $request, Library $library)
+    {
+        $validated = $request->validate([
+            'no_of_tables' => 'required|integer',
+        ]);
+
+        $library->update($validated);
+
+        return response()->json($library);
     }
 }

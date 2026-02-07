@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\EnquiryController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\LoginController;
+use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\SlotPackageController;
 use App\Http\Controllers\Api\StudentController;
 use Illuminate\Http\Request;
@@ -36,10 +38,13 @@ Route::group(['prefix' => 'library-app'], function () {
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
         // Route::get('/attendance', [AttendanceController::class, 'index']); // library data
         Route::get('/attendance/show', [AttendanceController::class, 'show']); // student data
-
+        Route::post('/update-no-of-seats', [LibraryController::class, 'updateNoOfSeats']);
+        Route::post('/enquiry/bulk-destroy', [EnquiryController::class, 'bulkDestroy']);
         Route::apiResources([
             'slot-package' => SlotPackageController::class,
-            'student' => StudentController::class
+            'student' => StudentController::class,
+            'enquiry' => EnquiryController::class,
+            'seat' => SeatController::class,
         ]);
     });
 });
