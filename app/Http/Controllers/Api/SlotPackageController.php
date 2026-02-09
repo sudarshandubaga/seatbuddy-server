@@ -28,6 +28,8 @@ class SlotPackageController extends Controller
      */
     public function store(Request $request)
     {
+        $authUser = $request->user()->load('library');
+
         $request->validate([
             'name' => 'required|string|max:255',
             'start_time' => 'required|date_format:H:i',
@@ -44,7 +46,7 @@ class SlotPackageController extends Controller
             'price' => $request->price,
             'icon' => $request->icon,
             'description' => $request->description,
-            'library_id' => $request->user()->library_id
+            'library_id' => $authUser->library->id
         ]);
 
         return response()->json([

@@ -15,7 +15,9 @@ class StudentController extends Controller
     {
         $user = auth()->user();
         $query = User::with('student')
-            ->where('library_id', $user->library_id)
+            ->whereHas('student', function ($q) use ($user) {
+                $q->where('library_id', $user->library_id);
+            })
             ->where('role', 'student');
 
         if ($request->has('unallocated') && $request->unallocated == 'true') {
@@ -30,7 +32,7 @@ class StudentController extends Controller
     // 🔹 STORE
     public function store(Request $request)
     {
-        $authUser = auth()->user();
+        $authUser = auth()->user()->load('library');
 
         $request->validate([
             'name' => 'required|string',
@@ -53,14 +55,14 @@ class StudentController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => 'student',
-            'library_id' => $authUser->library_id,
+            'library_id' => $authUser->library->id,
             'address' => $request->address,
         ]);
 
         $student = Student::create([
             'id' => Str::uuid(),
             'user_id' => $user->id,
-            'library_id' => $authUser->library_id,
+            'library_id' => $authUser->library->id,
             'father_name' => $request->father_name,
             'slot_package_id' => $request->slot_package_id,
             'notes' => $request->notes,
