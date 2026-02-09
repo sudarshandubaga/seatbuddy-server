@@ -62,8 +62,9 @@ class SlotPackageController extends Controller
      */
     public function show(Request $request, string $id)
     {
+        $authUser = $request->user()->load('library');
         $package = SlotPackage::where('id', $id)
-            ->where('library_id', $request->user()->library_id)
+            ->where('library_id', $authUser->library->id)
             ->firstOrFail();
 
         return response()->json([
@@ -77,8 +78,9 @@ class SlotPackageController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $authUser = $request->user()->load('library');
         $package = SlotPackage::where('id', $id)
-            ->where('library_id', $request->user()->library_id)
+            ->where('library_id', $authUser->library->id)
             ->firstOrFail();
 
         $request->validate([
@@ -111,8 +113,9 @@ class SlotPackageController extends Controller
      */
     public function destroy(Request $request, string $id)
     {
+        $authUser = $request->user()->load('library');
         $package = SlotPackage::where('id', $id)
-            ->where('library_id', $request->user()->library_id)
+            ->where('library_id', $authUser->library->id)
             ->firstOrFail();
 
         $package->delete();
