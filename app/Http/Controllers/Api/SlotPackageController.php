@@ -13,7 +13,8 @@ class SlotPackageController extends Controller
      */
     public function index(Request $request)
     {
-        $packages = SlotPackage::where('library_id', $request->user()->library_id)
+        $authUser = $request->user()->load('library');
+        $packages = SlotPackage::where('library_id', $authUser->library->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
