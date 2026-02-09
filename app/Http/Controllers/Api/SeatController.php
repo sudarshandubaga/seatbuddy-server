@@ -134,8 +134,10 @@ class SeatController extends Controller
 
         $student = Student::findOrFail($request->student_id);
 
+        $authUser = auth()->user()->load('library');
+
         // Security check: ensure student belongs to the same library
-        if ($student->library_id !== auth()->user()->library_id) {
+        if ($student->library_id !== $authUser->library->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
