@@ -13,18 +13,15 @@ class StudentController extends Controller
     // 🔹 LIST
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('library');
         $query = User::with('student')
-            ->whereHas('student', function ($q) use ($user) {
-                $q->where('library_id', $user->library_id);
+            ->whereHas('student', function ($q) use ($user, $request) {
+                $q->where('library_id', $user->library->id);
+                if ($request->has('unallocated') && $request->unallocated == 'true') {
+                    $q->whereNull('seat_no');
+                }
             })
             ->where('role', 'student');
-
-        if ($request->has('unallocated') && $request->unallocated == 'true') {
-            $query->whereHas('student', function ($q) {
-                $q->whereNull('seat_no');
-            });
-        }
 
         return response()->json($query->get());
     }
