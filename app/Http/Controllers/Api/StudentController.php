@@ -94,9 +94,10 @@ class StudentController extends Controller
             'notes' => 'nullable',
             'day_of_billing' => 'nullable',
             'seat_no' => 'nullable',
+            'address' => 'nullable',
         ]);
 
-        $student->user->update($request->only('name', 'email', 'phone'));
+        $student->user->update($request->only('name', 'email', 'phone', 'address'));
 
         $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing', 'seat_no'));
 
