@@ -31,7 +31,7 @@ class SeatController extends Controller
 
             $seat->allocations = $seatAllocations->map(function ($student) {
                 return [
-                    'slot' => $student->slotPackage->slot_name,
+                    'slot' => $student->slotPackage->name,
                     'studentName' => $student->user->name,
                     'studentId' => $student->user->login_name ?? $student->user->id,
                     'studentRecordId' => $student->id,
