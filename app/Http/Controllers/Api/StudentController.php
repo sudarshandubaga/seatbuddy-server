@@ -14,7 +14,7 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user()->load('library');
-        $query = User::with('student')
+        $query = User::with(['student', 'student.slotPackage'])
             ->whereHas('student', function ($q) use ($user, $request) {
                 $q->where('library_id', $user->library->id);
                 if ($request->has('unallocated') && $request->unallocated == 'true') {
