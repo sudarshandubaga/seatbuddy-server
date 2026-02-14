@@ -20,7 +20,7 @@ class SeatController extends Controller
         $seats = Seat::where('library_id', $user->library->id)->get();
 
         // Fetch students with seat assignments for this library
-        $students = Student::with('user')
+        $students = Student::with(['user', 'slotPackage'])
             ->whereNotNull('seat_no')
             ->where('library_id', $user->library->id)
             ->get();
@@ -31,10 +31,11 @@ class SeatController extends Controller
 
             $seat->allocations = $seatAllocations->map(function ($student) {
                 return [
-                    'slot' => 'F', // Default to Full Day as slot info is not yet on Student
+                    'slot' => $student->slotPackage->slot_name,
                     'studentName' => $student->user->name,
                     'studentId' => $student->user->login_name ?? $student->user->id,
                     'studentRecordId' => $student->id,
+                    'slotId' => $student->slotPackage->id,
                 ];
             })->values();
 
