@@ -42,6 +42,7 @@ class StudentController extends Controller
             'notes' => 'nullable',
             'day_of_billing' => 'nullable',
             'address' => 'nullable',
+            'image' => 'nullable',
         ]);
 
         $user = User::create([
@@ -54,6 +55,7 @@ class StudentController extends Controller
             'role' => 'student',
             'library_id' => $authUser->library->id,
             'address' => $request->address,
+            'image' => $request->image,
         ]);
 
         $student = Student::create([
@@ -95,9 +97,10 @@ class StudentController extends Controller
             'day_of_billing' => 'nullable',
             'seat_no' => 'nullable',
             'address' => 'nullable',
+            'image' => 'nullable',
         ]);
 
-        $student->user->update($request->only('name', 'email', 'phone', 'address'));
+        $student->user->update($request->only('name', 'email', 'phone', 'address', 'image'));
 
         $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing', 'seat_no'));
 
