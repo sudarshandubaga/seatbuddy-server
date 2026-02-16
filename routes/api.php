@@ -30,13 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 // Library App Android Routes
+Route::get('/fees-cron', [FeesCronController::class, 'store']);
+
 Route::group(['prefix' => 'library-app'], function () {
     Route::post('/login', [LoginController::class, 'doLogin']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
 
-        Route::get('/fees-cron', [FeesCronController::class, 'store']);
 
         Route::post('/startup', [HomeController::class, 'startup']);
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
