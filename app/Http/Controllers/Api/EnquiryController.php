@@ -15,9 +15,10 @@ class EnquiryController extends Controller
      */
     public function index()
     {
+        $user = auth()->user()->load('library');
         return response()->json([
             'success' => true,
-            'data' => Enquiry::latest()->paginate(50),
+            'data' => Enquiry::where('library_id', $user->library?->id)->latest()->get(),
         ]);
     }
 
@@ -26,6 +27,7 @@ class EnquiryController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user()->load('library');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -39,6 +41,7 @@ class EnquiryController extends Controller
 
         $enquiry = Enquiry::create([
             'id' => Str::uuid(),
+            'library_id' => $user->library?->id,
             ...$validated,
         ]);
 
@@ -108,7 +111,10 @@ class EnquiryController extends Controller
             'ids.*' => 'required|uuid|exists:enquiries,id',
         ]);
 
-        Enquiry::whereIn('id', $validated['ids'])->delete();
+        $user = auth()->user()->load('library');
+        Enquiry::whereIn('id', $validated['ids'])
+            ->where('library_id', $user->library?->id)
+            ->delete();
 
         return response()->json([
             'success' => true,

@@ -10,6 +10,7 @@ class Enquiry extends Model
     use HasUuids;
 
     protected $fillable = [
+        'library_id',
         'name',
         'email',
         'phone',
@@ -17,5 +18,6 @@ class Enquiry extends Model
         'gender',
         'slot_package_id',
         'message',
+        'address',
     ];
 }
