@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\SlotPackageController;
 use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\FeesCronController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -34,6 +35,8 @@ Route::group(['prefix' => 'library-app'], function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
+
+        Route::get('/fees-cron', [FeesCronController::class, 'store']);
 
         Route::post('/startup', [HomeController::class, 'startup']);
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
