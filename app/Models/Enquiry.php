@@ -20,4 +20,9 @@ class Enquiry extends Model
         'message',
         'address',
     ];
+
+    public function slotPackage()
+    {
+        return $this->belongsTo(SlotPackage::class);
+    }
 }

@@ -18,7 +18,7 @@ class EnquiryController extends Controller
         $user = auth()->user()->load('library');
         return response()->json([
             'success' => true,
-            'data' => Enquiry::where('library_id', $user->library?->id)->latest()->get(),
+            'data' => Enquiry::with('slotPackage')->where('library_id', $user->library?->id)->latest()->get(),
         ]);
     }
 
