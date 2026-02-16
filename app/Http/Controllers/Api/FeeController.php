@@ -43,14 +43,19 @@ class FeeController extends Controller
 
         $fees = $query->orderBy('date', 'desc')->get();
 
-        // Calculate stats
-        $totalDue = Fees::whereHas('student', function ($q) use ($libraryId) {
+        // Calculate stats with filters
+        $statsQuery = Fees::whereHas('student', function ($q) use ($libraryId) {
             $q->where('library_id', $libraryId);
-        })->where('status', 'due')->sum('amount');
+        });
 
-        $totalPaid = Fees::whereHas('student', function ($q) use ($libraryId) {
-            $q->where('library_id', $libraryId);
-        })->where('status', 'paid')->sum('amount');
+        if ($request->has('month')) {
+            $year = $request->get('year', date('Y'));
+            $statsQuery->whereMonth('date', $request->month)
+                ->whereYear('date', $year);
+        }
+
+        $totalDue = (clone $statsQuery)->where('status', 'due')->sum('amount');
+        $totalPaid = (clone $statsQuery)->where('status', 'paid')->sum('amount');
 
         return response()->json([
             'status' => true,
