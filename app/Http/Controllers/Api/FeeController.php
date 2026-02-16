@@ -35,6 +35,12 @@ class FeeController extends Controller
             });
         }
 
+        if ($request->has('month')) {
+            $year = $request->get('year', date('Y'));
+            $query->whereMonth('date', $request->month)
+                ->whereYear('date', $year);
+        }
+
         $fees = $query->orderBy('date', 'desc')->get();
 
         // Calculate stats
