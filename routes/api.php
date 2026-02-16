@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\EnquiryController;
+use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\SeatController;
@@ -44,6 +45,7 @@ Route::group(['prefix' => 'library-app'], function () {
             'student' => StudentController::class,
             'enquiry' => EnquiryController::class,
             'seat' => SeatController::class,
+            'fee' => FeeController::class,
         ]);
     });
 });

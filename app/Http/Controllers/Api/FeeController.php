@@ -10,45 +10,68 @@ use Illuminate\Http\Request;
 
 class FeeController extends Controller
 {
-    public function updateStatus(Fees $fees, Request $request)
+    public function index(Request $request)
     {
-        $fees->update([
-            'status' => $request->status,
-        ]);
+        $user = auth()->user()->load('library');
+        if (!$user->library) {
+            return response()->json(['status' => false, 'message' => 'Library not found'], 404);
+        }
+        $libraryId = $user->library->id;
+
+        $query = Fees::with(['student', 'student.user'])
+            ->whereHas('student', function ($q) use ($libraryId) {
+                $q->where('library_id', $libraryId);
+            });
+
+        if ($request->has('status') && in_array($request->status, ['paid', 'due'])) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereHas('student.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $fees = $query->orderBy('date', 'desc')->get();
+
+        // Calculate stats
+        $totalDue = Fees::whereHas('student', function ($q) use ($libraryId) {
+            $q->where('library_id', $libraryId);
+        })->where('status', 'due')->sum('amount');
+
+        $totalPaid = Fees::whereHas('student', function ($q) use ($libraryId) {
+            $q->where('library_id', $libraryId);
+        })->where('status', 'paid')->sum('amount');
 
         return response()->json([
-            'message' => 'Fee status updated successfully',
-            'data' => $fees
+            'status' => true,
+            'data' => $fees,
+            'stats' => [
+                'total_due' => floatval($totalDue),
+                'total_paid' => floatval($totalPaid)
+            ]
         ]);
     }
 
-    public function index(Request $request)
+    public function update(Request $request, $id)
     {
+        $fee = Fees::findOrFail($id);
+
         $request->validate([
-            'type' => 'required|in:due,paid,all'
+            'status' => 'required|in:paid,due'
         ]);
 
-        $user = auth()->user();
-        $fees = User::with([
-            'student',
-            'fees' => function ($query) use ($request) {
-                if ($request->type === 'due') {
-                    $query->where('status', 'due');
-                } elseif ($request->type === 'paid') {
-                    $query->where('status', 'paid');
-                }
-            }
-        ])
-            ->where('library_id', $user->library_id)
-            ->whereHas('fees', function ($query) use ($request) {
-                if ($request->type === 'due') {
-                    $query->where('status', 'due');
-                } elseif ($request->type === 'paid') {
-                    $query->where('status', 'paid');
-                }
-            })
-            ->get();
+        $fee->update([
+            'status' => $request->status
+        ]);
 
-        return response()->json($fees);
+        return response()->json([
+            'status' => true,
+            'message' => 'Fee updated successfully',
+            'data' => $fee
+        ]);
     }
 }
