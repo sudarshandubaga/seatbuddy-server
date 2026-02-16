@@ -10,6 +10,32 @@ use Illuminate\Support\Str;
 
 class StudentController extends Controller
 {
+    private function storeImage($base64Image)
+    {
+        if (!$base64Image || !preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+            return $base64Image;
+        }
+
+        $image = substr($base64Image, strpos($base64Image, ',') + 1);
+        $type = strtolower($type[1]);
+
+        if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+            return $base64Image;
+        }
+
+        $image = str_replace(' ', '+', $image);
+        $imageName = strtolower(Str::random(10)) . '.' . $type;
+
+        $directory = public_path('uploads/students');
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        file_put_contents($directory . '/' . $imageName, base64_decode($image));
+
+        return url('uploads/students/' . $imageName);
+    }
+
     // 🔹 LIST
     public function index(Request $request)
     {
@@ -19,6 +45,9 @@ class StudentController extends Controller
                 $q->where('library_id', $user->library->id);
                 if ($request->has('unallocated') && $request->unallocated == 'true') {
                     $q->whereNull('seat_no');
+                }
+                if ($request->has('slot_package_id') && $request->slot_package_id) {
+                    $q->where('slot_package_id', $request->slot_package_id);
                 }
             })
             ->where('role', 'student');
@@ -55,7 +84,7 @@ class StudentController extends Controller
             'role' => 'student',
             'library_id' => $authUser->library->id,
             'address' => $request->address,
-            'image' => $request->image,
+            'image' => $this->storeImage($request->image),
         ]);
 
         $student = Student::create([
@@ -100,7 +129,11 @@ class StudentController extends Controller
             'image' => 'nullable',
         ]);
 
-        $student->user->update($request->only('name', 'email', 'phone', 'address', 'image'));
+        $userData = $request->only('name', 'email', 'phone', 'address');
+        if ($request->has('image')) {
+            $userData['image'] = $this->storeImage($request->image);
+        }
+        $student->user->update($userData);
 
         $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing', 'seat_no'));
 
