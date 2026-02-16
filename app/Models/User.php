@@ -26,7 +26,8 @@ class User extends Authenticatable
         'role',
         'library_code',
         'address',
-        'image'
+        'image',
+        'gender',
     ];
 
     /**

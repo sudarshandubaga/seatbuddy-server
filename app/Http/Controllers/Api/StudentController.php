@@ -73,6 +73,7 @@ class StudentController extends Controller
             'join_date' => 'nullable|date',
             'address' => 'nullable',
             'image' => 'nullable',
+            'gender' => 'nullable|in:male,female,other',
         ]);
 
         $user = User::create([
@@ -86,6 +87,7 @@ class StudentController extends Controller
             'library_id' => $authUser->library->id,
             'address' => $request->address,
             'image' => $this->storeImage($request->image),
+            'gender' => $request->gender,
         ]);
 
         $student = Student::create([
@@ -130,9 +132,10 @@ class StudentController extends Controller
             'seat_no' => 'nullable',
             'address' => 'nullable',
             'image' => 'nullable',
+            'gender' => 'nullable|in:male,female,other',
         ]);
 
-        $userData = $request->only('name', 'email', 'phone', 'address');
+        $userData = $request->only('name', 'email', 'phone', 'address', 'gender');
         if ($request->has('image')) {
             $userData['image'] = $this->storeImage($request->image);
         }
