@@ -70,6 +70,7 @@ class StudentController extends Controller
             'slot_package_id' => 'nullable|exists:slot_packages,id',
             'notes' => 'nullable',
             'day_of_billing' => 'nullable',
+            'join_date' => 'nullable|date',
             'address' => 'nullable',
             'image' => 'nullable',
         ]);
@@ -95,6 +96,7 @@ class StudentController extends Controller
             'slot_package_id' => $request->slot_package_id,
             'notes' => $request->notes,
             'day_of_billing' => $request->day_of_billing,
+            'join_date' => $request->join_date,
             'seat_no' => $request->seat_no,
         ]);
 
@@ -124,6 +126,7 @@ class StudentController extends Controller
             'father_name' => 'nullable',
             'notes' => 'nullable',
             'day_of_billing' => 'nullable',
+            'join_date' => 'nullable|date',
             'seat_no' => 'nullable',
             'address' => 'nullable',
             'image' => 'nullable',
@@ -135,7 +138,7 @@ class StudentController extends Controller
         }
         $student->user->update($userData);
 
-        $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing', 'seat_no'));
+        $student->update($request->only('father_name', 'notes', 'slot_package_id', 'day_of_billing', 'join_date', 'seat_no'));
 
         return response()->json([
             'message' => 'Student updated successfully',

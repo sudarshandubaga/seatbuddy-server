@@ -15,6 +15,7 @@ class Student extends Model
         'slot_package_id',
         'notes',
         'seat_no',
+        'join_date',
         'day_of_billing',
     ];
 
