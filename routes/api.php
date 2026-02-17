@@ -34,6 +34,9 @@ Route::get('/fees-cron', [FeesCronController::class, 'store']);
 
 Route::group(['prefix' => 'library-app'], function () {
     Route::post('/login', [LoginController::class, 'doLogin']);
+    Route::post('/register', [\App\Http\Controllers\Api\RegistrationController::class, 'register']);
+    Route::post('/verify-payment', [\App\Http\Controllers\Api\RegistrationController::class, 'verifyPayment']);
+    Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
