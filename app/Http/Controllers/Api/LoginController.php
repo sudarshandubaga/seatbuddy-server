@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -72,10 +73,29 @@ class LoginController extends Controller
     {
         $request->validate(['login_name' => 'required']);
 
-        // In a real app, send OTP or Reset Link
+        $user = User::where('login_name', $request->login_name)->first();
+
+        if ($user) {
+            $newPassword = Str::random(8);
+            $user->update([
+                'password' => Hash::make($newPassword)
+            ]);
+
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\ForgotPasswordMail($newPassword));
+            } catch (\Exception $e) {
+                // Silently log or handle if mail fails
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'If your account exists and has a registered email, you will receive your new password shortly.'
+            ]);
+        }
+
         return response()->json([
             'status' => true,
-            'message' => 'If your account exists, you will receive instructions shortly. Please contact support if you need immediate assistance.'
+            'message' => 'If your account exists and has a registered email, you will receive your new password shortly.'
         ]);
     }
 }

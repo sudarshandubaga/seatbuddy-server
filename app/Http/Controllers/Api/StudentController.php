@@ -109,6 +109,12 @@ class StudentController extends Controller
             'seat_no' => $request->seat_no,
         ]);
 
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\StudentCredentialsMail($user, $request->password));
+        } catch (\Exception $e) {
+            // Log failure or continue
+        }
+
         return response()->json([
             'message' => 'Student created successfully',
             'data' => $student->load('user')
