@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import LibraryStore from './pages/LibraryStore';
+import LibraryStore from './pages/Library/index';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import Users from './pages/Users';
 import AdminLayout from './layouts/AdminLayout';
