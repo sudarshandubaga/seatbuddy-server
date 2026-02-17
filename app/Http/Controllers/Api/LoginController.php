@@ -35,6 +35,13 @@ class LoginController extends Controller
             ], 401);
         }
 
+        if (!$user->is_active) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account has been deactivated. Please contact administrator.'
+            ], 403);
+        }
+
         // Create token
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -58,6 +65,17 @@ class LoginController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Logged out successfully'
+        ]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['login_name' => 'required']);
+
+        // In a real app, send OTP or Reset Link
+        return response()->json([
+            'status' => true,
+            'message' => 'If your account exists, you will receive instructions shortly. Please contact support if you need immediate assistance.'
         ]);
     }
 }

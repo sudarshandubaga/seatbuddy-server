@@ -36,6 +36,7 @@ Route::group(['prefix' => 'library-app'], function () {
     Route::post('/login', [LoginController::class, 'doLogin']);
     Route::post('/register', [\App\Http\Controllers\Api\RegistrationController::class, 'register']);
     Route::post('/verify-payment', [\App\Http\Controllers\Api\RegistrationController::class, 'verifyPayment']);
+    Route::post('/forgot-password', [LoginController::class, 'forgotPassword']);
     Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -50,6 +51,14 @@ Route::group(['prefix' => 'library-app'], function () {
         Route::get('/attendance/show', [AttendanceController::class, 'show']); // student data
         Route::post('/enquiry/bulk-destroy', [EnquiryController::class, 'bulkDestroy']);
         Route::post('/seat/unallocate', [SeatController::class, 'unallocate']);
+
+        // Profile Routes
+        Route::post('/profile/update', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+        Route::post('/profile/change-password', [\App\Http\Controllers\Api\ProfileController::class, 'changePassword']);
+        Route::post('/profile/update-avatar', [\App\Http\Controllers\Api\ProfileController::class, 'updateAvatar']);
+
+        Route::post('/student/{id}/toggle-status', [\App\Http\Controllers\Api\StudentController::class, 'toggleStatus']);
+
         Route::apiResources([
             'slot-package' => SlotPackageController::class,
             'student' => StudentController::class,

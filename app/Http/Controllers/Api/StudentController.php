@@ -50,6 +50,13 @@ class StudentController extends Controller
                     $q->where('slot_package_id', $request->slot_package_id);
                 }
             })
+            ->where(function ($q) use ($request) {
+                if ($request->status === 'deactivated') {
+                    $q->where('is_active', false);
+                } else {
+                    $q->where('is_active', true);
+                }
+            })
             ->where('role', 'student');
 
         return response()->json($query->get());
@@ -157,6 +164,20 @@ class StudentController extends Controller
 
         return response()->json([
             'message' => 'Student deleted successfully'
+        ]);
+    }
+
+    public function toggleStatus($id)
+    {
+        $student = Student::with('user')->findOrFail($id);
+        $student->user->update([
+            'is_active' => !$student->user->is_active
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Student status updated',
+            'is_active' => $student->user->is_active
         ]);
     }
 }
