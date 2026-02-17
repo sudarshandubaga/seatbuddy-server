@@ -41,6 +41,9 @@ Route::group(['prefix' => 'library-app'], function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [LoginController::class, 'logout']);
 
+        Route::post('/purchase-subscription', [\App\Http\Controllers\Api\SubscriptionController::class, 'purchase']);
+        Route::post('/verify-subscription', [\App\Http\Controllers\Api\SubscriptionController::class, 'verify']);
+
 
         Route::post('/startup', [HomeController::class, 'startup']);
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
