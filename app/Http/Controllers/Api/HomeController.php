@@ -42,4 +42,58 @@ class HomeController extends Controller
             'data' => $user->load(["student", "library.plan"])
         ]);
     }
+
+    public function dashboard(Request $request)
+    {
+        $user = auth()->user()->load('library');
+        if (!$user->library) {
+            return response()->json(['status' => false, 'message' => 'Library not found'], 404);
+        }
+        $libraryId = $user->library->id;
+
+        $activeStudents = \App\Models\User::where('role', 'student')
+            ->whereHas('student', fn($q) => $q->where('library_id', $libraryId))
+            ->where('is_active', true)
+            ->count();
+
+        $dueFeesCount = \App\Models\Fees::whereHas('student', fn($q) => $q->where('library_id', $libraryId))
+            ->where('status', 'due')
+            ->count();
+
+        $totalExpense = \App\Models\Expense::where('library_id', $libraryId)
+            ->whereMonth('date', now()->month)
+            ->whereYear('date', now()->year)
+            ->sum('amount');
+
+        $totalEarnings = \App\Models\Fees::whereHas('student', fn($q) => $q->where('library_id', $libraryId))
+            ->where('status', 'paid')
+            ->sum('amount');
+
+        // Chart Data (Last 6 Months)
+        $chartData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $amount = \App\Models\Fees::whereHas('student', fn($q) => $q->where('library_id', $libraryId))
+                ->where('status', 'paid')
+                ->whereMonth('date', $month->month)
+                ->whereYear('date', $month->year)
+                ->sum('amount');
+
+            $chartData[] = [
+                'label' => $month->format('M'),
+                'value' => (int) $amount
+            ];
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'active_students' => $activeStudents,
+                'due_fees_count' => $dueFeesCount,
+                'total_expense' => $totalExpense,
+                'total_earnings' => $totalEarnings,
+                'chart_data' => $chartData
+            ]
+        ]);
+    }
 }
