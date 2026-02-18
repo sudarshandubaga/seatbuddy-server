@@ -66,6 +66,7 @@ Route::group(['prefix' => 'library-app'], function () {
             'enquiry' => EnquiryController::class,
             'seat' => SeatController::class,
             'fee' => FeeController::class,
+            'expense' => \App\Http\Controllers\Api\ExpenseController::class,
         ]);
     });
 });
