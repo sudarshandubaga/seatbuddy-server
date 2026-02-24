@@ -4,90 +4,56 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
+use App\Models\Library;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    /**
-     * Display a listing of expenses for a library.
-     */
     public function index()
     {
         $user = auth()->user()->load('library');
-        if (!$user->library) {
-            return response()->json(['message' => 'Library not found'], 404);
-        }
-
         $expenses = Expense::where('library_id', $user->library->id)
             ->orderBy('date', 'desc')
             ->get();
-
-        // Calculate monthly total for current month
-        $monthlyTotal = Expense::where('library_id', $user->library->id)
-            ->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year)
-            ->sum('amount');
-
-        // Calculate grand total
-        $grandTotal = Expense::where('library_id', $user->library->id)
-            ->sum('amount');
-
-        return response()->json([
-            'expenses' => $expenses,
-            'stats' => [
-                'monthly_total' => $monthlyTotal,
-                'grand_total' => $grandTotal
-            ]
-        ], 200);
+        return response()->json($expenses);
     }
 
-    /**
-     * Store a newly created expense.
-     */
     public function store(Request $request)
     {
         $user = auth()->user()->load('library');
-        if (!$user->library) {
-            return response()->json(['message' => 'Library not found'], 404);
-        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:0',
-            'category' => 'required|in:rent,electricity,maintenance,other',
+            'category' => 'required|in:Rent,Electricity,Maintenance,Other',
             'date' => 'required|date',
         ]);
 
-        $validated['library_id'] = $user->library->id;
-
-        $expense = Expense::create($validated);
+        $expense = Expense::create([
+            'library_id' => $user->library->id,
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'amount' => $validated['amount'],
+            'category' => $validated['category'],
+            'date' => $validated['date'],
+        ]);
 
         return response()->json($expense, 201);
     }
 
-    /**
-     * Display a specific expense.
-     */
-    public function show(Expense $expense)
+    public function show($id)
     {
         $user = auth()->user()->load('library');
-        if ($expense->library_id !== $user->library->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $expense = Expense::where('library_id', $user->library->id)->findOrFail($id);
 
-        return response()->json($expense, 200);
+        return response()->json($expense);
     }
 
-    /**
-     * Update an expense.
-     */
-    public function update(Request $request, Expense $expense)
+    public function update(Request $request, $id)
     {
         $user = auth()->user()->load('library');
-        if ($expense->library_id !== $user->library->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $expense = Expense::where('library_id', $user->library->id)->findOrFail($id);
 
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
@@ -99,23 +65,18 @@ class ExpenseController extends Controller
 
         $expense->update($validated);
 
-        return response()->json($expense, 200);
+        return response()->json($expense);
     }
 
-    /**
-     * Remove an expense.
-     */
-    public function destroy(Expense $expense)
+    public function destroy($id)
     {
         $user = auth()->user()->load('library');
-        if ($expense->library_id !== $user->library->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $expense = Expense::where('library_id', $user->library->id)->findOrFail($id);
 
         $expense->delete();
 
         return response()->json([
             'message' => 'Expense deleted successfully'
-        ], 200);
+        ]);
     }
 }

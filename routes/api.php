@@ -47,7 +47,6 @@ Route::group(['prefix' => 'library-app'], function () {
 
 
         Route::post('/startup', [HomeController::class, 'startup']);
-        Route::get('/dashboard', [HomeController::class, 'dashboard']);
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
         Route::get('/attendance/show', [AttendanceController::class, 'show']); // student data
         Route::post('/enquiry/bulk-destroy', [EnquiryController::class, 'bulkDestroy']);
