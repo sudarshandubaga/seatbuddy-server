@@ -20,7 +20,9 @@ class HomeController extends Controller
         $libraryId = $user->library->id;
 
         // Active Students (by library_id in user table)
-        $activeStudentsCount = User::where('library_id', $libraryId)
+        $activeStudentsCount = User::whereHas('library', function ($q) use ($libraryId) {
+            $q->where('id', $libraryId);
+        })
             ->where('role', 'student')
             ->where('is_active', true)
             ->count();
