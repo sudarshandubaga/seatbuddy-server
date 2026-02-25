@@ -15,12 +15,12 @@ class LoginController extends Controller
         $request->validate([
             'login_name' => 'required|string',
             'password' => 'required|string',
-            'role' => 'required|in:library,student',
-            'library_code' => 'required_if:role,student'
+            // 'role' => 'required|in:library,student',
+            // 'library_code' => 'required_if:role,student'
         ]);
 
-        $query = User::where('login_name', $request->login_name)
-            ->where('role', $request->role);
+        $query = User::where('login_name', $request->login_name);
+        // ->where('role', $request->role);
 
         // Students must belong to a library
         // if ($request->role === 'student') {
