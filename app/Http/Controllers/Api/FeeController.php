@@ -27,6 +27,10 @@ class FeeController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('student_id')) {
+            $query->where('student_id', $request->student_id);
+        }
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->whereHas('student.user', function ($q) use ($search) {
@@ -52,6 +56,10 @@ class FeeController extends Controller
             $year = $request->get('year', date('Y'));
             $statsQuery->whereMonth('date', $request->month)
                 ->whereYear('date', $year);
+        }
+
+        if ($request->has('student_id')) {
+            $statsQuery->where('student_id', $request->student_id);
         }
 
         $totalDue = (clone $statsQuery)->where('status', 'due')->sum('amount');
