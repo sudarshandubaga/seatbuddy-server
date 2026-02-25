@@ -53,13 +53,8 @@ class User extends Authenticatable
         return $this->hasOne(Library::class);
     }
 
-    public function fees()
-    {
-        return $this->hasMany(Fees::class);
-    }
-
     public function getDueAmountAttribute()
     {
-        return $this->fees()->where('status', 'due')->sum('amount');
+        return $this->student()->fees()->where('status', 'due')->sum('amount');
     }
 }

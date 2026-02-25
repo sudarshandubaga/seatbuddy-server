@@ -33,4 +33,8 @@ class Student extends Model
     {
         return $this->belongsTo(Library::class);
     }
+    public function fees()
+    {
+        return $this->hasMany(Fees::class);
+    }
 }
