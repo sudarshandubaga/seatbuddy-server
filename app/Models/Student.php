@@ -35,6 +35,16 @@ class Student extends Model
     }
     public function fees()
     {
-        return $this->hasMany(Fees::class);
+        return $this->hasManyThrough(
+            Fees::class,
+            Student::class
+        );
+    }
+
+    public function getDueAmountAttribute()
+    {
+        return $this->fees()
+            ->where('status', 'due')
+            ->sum('amount');
     }
 }

@@ -55,6 +55,13 @@ class User extends Authenticatable
 
     public function getDueAmountAttribute()
     {
-        return $this->student->fees()->where('status', 'due')->sum('amount');
+        if (!$this->student) {
+            return 0;
+        }
+
+        return $this->student
+            ->fees()
+            ->where('status', 'due')
+            ->sum('amount');
     }
 }
