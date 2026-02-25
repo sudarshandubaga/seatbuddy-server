@@ -19,7 +19,7 @@ class LoginController extends Controller
             // 'library_code' => 'required_if:role,student'
         ]);
 
-        $query = User::where('login_name', $request->login_name);
+        $query = User::where('login_name', $request->login_name)->where('is_active', 1);
         // ->where('role', $request->role);
 
         // Students must belong to a library
@@ -46,16 +46,17 @@ class LoginController extends Controller
         // Create token
         $token = $user->createToken('api-token')->plainTextToken;
 
+        if ($user->role == "student") {
+            $user->load(['student', 'student.slotPackage']);
+        } else if ($user->role == "library") {
+            $user->load(['library', 'library.plan']);
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Login successful',
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'role' => $user->role,
-                'library_code' => $user->library_code
-            ]
+            'user' => $user
         ]);
     }
 
