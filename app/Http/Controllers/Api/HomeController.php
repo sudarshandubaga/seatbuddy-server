@@ -125,7 +125,7 @@ class HomeController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'User data',
-            'data' => $user->load(["student", "library.plan"])
+            'data' => $user->load(["student.slotPackage", "library.plan"])
         ]);
     }
 }
