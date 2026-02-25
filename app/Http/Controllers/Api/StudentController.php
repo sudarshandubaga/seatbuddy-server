@@ -169,6 +169,7 @@ class StudentController extends Controller
         $student->user()->delete(); // cascade delete student
 
         return response()->json([
+            'status' => true,
             'message' => 'Student deleted successfully'
         ]);
     }
