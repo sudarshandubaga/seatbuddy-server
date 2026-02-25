@@ -70,7 +70,7 @@ class StudentController extends Controller
         $request->validate([
             'name' => 'required|string',
             'login_name' => 'required|unique:users,login_name',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'password' => 'required|min:6',
             'phone' => 'nullable',
             'father_name' => 'nullable',

@@ -23,9 +23,9 @@ class LoginController extends Controller
             ->where('role', $request->role);
 
         // Students must belong to a library
-        if ($request->role === 'student') {
-            $query->where('library_code', $request->library_code);
-        }
+        // if ($request->role === 'student') {
+        //     $query->where('library_code', $request->library_code);
+        // }
 
         $user = $query->first();
 
