@@ -36,8 +36,12 @@ class Student extends Model
     public function fees()
     {
         return $this->hasManyThrough(
-            Fees::class,
-            Student::class
+            Fees::class,      // Final model
+            Student::class,  // Intermediate model
+            'user_id',       // Foreign key on students table
+            'student_id',    // Foreign key on fees table
+            'id',            // Local key on users table
+            'id'             // Local key on students table
         );
     }
 
