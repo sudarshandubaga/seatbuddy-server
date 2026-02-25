@@ -19,18 +19,18 @@ class HomeController extends Controller
         }
         $libraryId = $user->library->id;
 
-        // Active Students (by library_id in user table)
-        $activeStudentsCount = User::whereHas('library', function ($q) use ($libraryId) {
-            $q->where('id', $libraryId);
+        // Active Students (by library_id in student table)
+        $activeStudentsCount = User::whereHas('student', function ($q) use ($libraryId) {
+            $q->where('library_id', $libraryId);
         })
             ->where('role', 'student')
             ->where('is_active', true)
             ->count();
 
-        // Due Fees (count)
-        $dueFeesCount = Fees::whereHas('student', function ($q) use ($libraryId) {
+        // Due Fees (sum total amount)
+        $dueFeesAmount = Fees::whereHas('student', function ($q) use ($libraryId) {
             $q->where('library_id', $libraryId);
-        })->where('status', 'due')->count();
+        })->where('status', 'due')->sum('amount');
 
         // Total Expense (current month)
         $totalExpense = Expense::where('library_id', $libraryId)
@@ -38,10 +38,14 @@ class HomeController extends Controller
             ->whereYear('date', date('Y'))
             ->sum('amount');
 
-        // Total Earnings (sum of paid fees)
+        // Total Earnings (sum of paid fees - CURRENT MONTH)
         $totalEarnings = Fees::whereHas('student', function ($q) use ($libraryId) {
             $q->where('library_id', $libraryId);
-        })->where('status', 'paid')->sum('amount');
+        })
+            ->where('status', 'paid')
+            ->whereMonth('date', date('m'))
+            ->whereYear('date', date('Y'))
+            ->sum('amount');
 
         // Monthly Earnings Graph (last 6 months)
         $monthlyEarnings = [];
@@ -81,7 +85,7 @@ class HomeController extends Controller
             'status' => true,
             'data' => [
                 'active_students' => $activeStudentsCount,
-                'due_fees_count' => $dueFeesCount,
+                'due_fees_amount' => floatval($dueFeesAmount),
                 'total_expense' => floatval($totalExpense),
                 'total_earnings' => floatval($totalEarnings),
                 'monthly_earnings' => $monthlyEarnings,

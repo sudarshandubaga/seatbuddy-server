@@ -91,7 +91,6 @@ class StudentController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => 'student',
-            'library_id' => $authUser->library->id,
             'address' => $request->address,
             'image' => $this->storeImage($request->image),
             'gender' => $request->gender,
