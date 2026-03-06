@@ -64,4 +64,9 @@ class User extends Authenticatable
             ->where('status', 'due')
             ->sum('amount');
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }

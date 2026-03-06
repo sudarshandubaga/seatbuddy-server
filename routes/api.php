@@ -50,6 +50,7 @@ Route::group(['prefix' => 'library-app'], function () {
         Route::get('/dashboard', [HomeController::class, 'dashboard']);
         Route::post('/attendance', [AttendanceController::class, 'store']); // mark attendance
         Route::get('/attendance/show', [AttendanceController::class, 'show']); // student data
+        Route::get('/attendance/history', [AttendanceController::class, 'history']);
         Route::post('/enquiry/bulk-destroy', [EnquiryController::class, 'bulkDestroy']);
         Route::post('/seat/unallocate', [SeatController::class, 'unallocate']);
 

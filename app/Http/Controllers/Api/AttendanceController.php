@@ -13,8 +13,8 @@ class AttendanceController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $attendances = User::with('attendances')->where('library_id', $user->library_id)->where('role', 'student')->get();
+        $user = auth()->user()->load('library');
+        $attendances = User::with('attendances')->where('library_id', $user->library->id)->where('role', 'student')->get();
         return response()->json($attendances);
     }
 
@@ -73,5 +73,45 @@ class AttendanceController extends Controller
         $user = auth()->user();
         $attendance = Attendance::where('user_id', $user->id)->where('date', $request->date)->get();
         return response()->json($attendance);
+    }
+
+    public function history(Request $request)
+    {
+        $user = auth()->user();
+        $targetUserId = $request->user_id ?? $user->id;
+
+        if ($user->role === 'library' && $request->user_id) {
+            $student = User::where('id', $targetUserId)->where('library_id', $user->library_id)->first();
+            if (!$student) {
+                return response()->json(['message' => 'Student not found or access denied'], 403);
+            }
+        } elseif ($user->role === 'student') {
+            $targetUserId = $user->id;
+        }
+
+        $attendances = Attendance::where('user_id', $targetUserId)
+            ->orderBy('date', 'desc')
+            ->orderBy('time', 'asc')
+            ->get()
+            ->groupBy(function ($item) {
+                return Carbon::parse($item->date)->toDateString();
+            });
+
+        $history = [];
+        foreach ($attendances as $date => $records) {
+            $checkIn = $records->where('type', 'in')->first();
+            $checkOut = $records->where('type', 'out')->last();
+
+            $history[] = [
+                'id' => $date,
+                'date' => Carbon::parse($date)->format('d-m-Y'),
+                'day' => Carbon::parse($date)->format('l'),
+                'checkIn' => $checkIn ? Carbon::parse($checkIn->time)->format('h:i A') : '-',
+                'checkOut' => $checkOut ? Carbon::parse($checkOut->time)->format('h:i A') : '-',
+                'status' => $checkIn ? 'Present' : 'Absent'
+            ];
+        }
+
+        return response()->json($history);
     }
 }
