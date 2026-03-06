@@ -99,7 +99,6 @@ class AttendanceController extends Controller
         $tempIn = null;
 
         foreach ($attendances as $record) {
-            // Ensure date is treated as string for grouping
             $dateString = Carbon::parse($record->date)->toDateString();
 
             if (!isset($processedHistory[$dateString])) {
@@ -120,24 +119,28 @@ class AttendanceController extends Controller
                 'time' => $timeFormatted
             ];
 
-            // Pairing Logic
+            // Precise calculation logic
+            $recordDateTime = Carbon::parse($dateString . ' ' . $record->time);
+
             if ($record->type === 'in') {
-                // We pair from the IN record. If multiple INs occur, we keep the first one as session start.
-                if (!$tempIn) {
-                    $tempIn = Carbon::parse($dateString . ' ' . $record->time);
-                }
+                // If we have an unmatched 'in', we update it to the latest one
+                // This prevents massive incorrect durations if someone forgot to scan OUT previously.
+                $tempIn = $recordDateTime;
             } elseif ($record->type === 'out' && $tempIn) {
-                // Calculate duration when an OUT follows an IN
-                $currentOut = Carbon::parse($dateString . ' ' . $record->time);
-                $duration = $currentOut->diffInSeconds($tempIn);
+                // Calculate duration using the exact timestamps
+                $seconds = $recordDateTime->diffInSeconds($tempIn);
 
-                // Attribute the duration to the session's start date
-                $startDate = $tempIn->toDateString();
-                if (isset($processedHistory[$startDate])) {
-                    $processedHistory[$startDate]['totalSeconds'] += $duration;
+                // Only add if it's a positive logical duration
+                // diffInSeconds is absolute by default, but we check logic
+                if ($recordDateTime->greaterThan($tempIn)) {
+                    // Credit the duration to the date the session started
+                    $startDateString = $tempIn->toDateString();
+                    if (isset($processedHistory[$startDateString])) {
+                        $processedHistory[$startDateString]['totalSeconds'] += $seconds;
+                    }
                 }
 
-                $tempIn = null; // Session closed
+                $tempIn = null; // Session closed/paired
             }
         }
 
@@ -148,7 +151,8 @@ class AttendanceController extends Controller
             $hours = floor($totalSeconds / 3600);
             $minutes = floor(($totalSeconds / 60) % 60);
 
-            $data['duration'] = "{$hours}h {$minutes}m";
+            // Format as "03 h : 30 m" to match user request
+            $data['duration'] = sprintf('%02d h : %02d m', $hours, $minutes);
             unset($data['totalSeconds']);
             $finalHistory[] = $data;
         }
