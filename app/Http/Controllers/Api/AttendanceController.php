@@ -89,51 +89,71 @@ class AttendanceController extends Controller
             $targetUserId = $user->id;
         }
 
+        // Fetch all records sequentially to pair IN/OUT correctly
         $attendances = Attendance::where('user_id', $targetUserId)
-            ->orderBy('date', 'desc')
+            ->orderBy('date', 'asc')
             ->orderBy('time', 'asc')
-            ->get()
-            ->groupBy(function ($item) {
-                return Carbon::parse($item->date)->toDateString();
-            });
+            ->get();
 
-        $history = [];
-        foreach ($attendances as $date => $records) {
-            $totalSeconds = 0;
-            $logs = [];
+        $processedHistory = [];
+        $tempIn = null;
 
-            $tempIn = null;
-            foreach ($records as $record) {
-                $timeFormatted = Carbon::parse($record->time)->format('h:i A');
-                $logs[] = [
-                    'type' => $record->type,
-                    'time' => $timeFormatted
+        foreach ($attendances as $record) {
+            // Ensure date is treated as string for grouping
+            $dateString = Carbon::parse($record->date)->toDateString();
+
+            if (!isset($processedHistory[$dateString])) {
+                $processedHistory[$dateString] = [
+                    'id' => $dateString,
+                    'date' => Carbon::parse($dateString)->format('d-m-Y'),
+                    'day' => Carbon::parse($dateString)->format('l'),
+                    'totalSeconds' => 0,
+                    'logs' => [],
+                    'status' => 'Present'
                 ];
-
-                if ($record->type === 'in') {
-                    $tempIn = Carbon::parse($record->date->toDateString() . ' ' . $record->time);
-                } elseif ($record->type === 'out' && $tempIn) {
-                    $currentOut = Carbon::parse($record->date->toDateString() . ' ' . $record->time);
-                    $totalSeconds += $currentOut->diffInSeconds($tempIn);
-                    $tempIn = null;
-                }
             }
 
-            // Calculation of hours
-            $hours = floor($totalSeconds / 3600);
-            $minutes = floor(($totalSeconds / 60) % 60);
-            $durationFormatted = "{$hours}h {$minutes}m";
-
-            $history[] = [
-                'id' => $date,
-                'date' => Carbon::parse($date)->format('d-m-Y'),
-                'day' => Carbon::parse($date)->format('l'),
-                'duration' => $durationFormatted,
-                'logs' => $logs,
-                'status' => count($records) > 0 ? 'Present' : 'Absent'
+            // Log time formatting
+            $timeFormatted = Carbon::parse($record->time)->format('h:i A');
+            $processedHistory[$dateString]['logs'][] = [
+                'type' => $record->type,
+                'time' => $timeFormatted
             ];
+
+            // Pairing Logic
+            if ($record->type === 'in') {
+                // We pair from the IN record. If multiple INs occur, we keep the first one as session start.
+                if (!$tempIn) {
+                    $tempIn = Carbon::parse($dateString . ' ' . $record->time);
+                }
+            } elseif ($record->type === 'out' && $tempIn) {
+                // Calculate duration when an OUT follows an IN
+                $currentOut = Carbon::parse($dateString . ' ' . $record->time);
+                $duration = $currentOut->diffInSeconds($tempIn);
+
+                // Attribute the duration to the session's start date
+                $startDate = $tempIn->toDateString();
+                if (isset($processedHistory[$startDate])) {
+                    $processedHistory[$startDate]['totalSeconds'] += $duration;
+                }
+
+                $tempIn = null; // Session closed
+            }
         }
 
-        return response()->json($history);
+        // Final formatting
+        $finalHistory = [];
+        foreach ($processedHistory as $date => $data) {
+            $totalSeconds = $data['totalSeconds'];
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds / 60) % 60);
+
+            $data['duration'] = "{$hours}h {$minutes}m";
+            unset($data['totalSeconds']);
+            $finalHistory[] = $data;
+        }
+
+        // Show most recent dates first
+        return response()->json(array_reverse($finalHistory));
     }
 }
