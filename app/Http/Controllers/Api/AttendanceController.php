@@ -99,16 +99,38 @@ class AttendanceController extends Controller
 
         $history = [];
         foreach ($attendances as $date => $records) {
-            $checkIn = $records->where('type', 'in')->first();
-            $checkOut = $records->where('type', 'out')->last();
+            $totalSeconds = 0;
+            $logs = [];
+
+            $tempIn = null;
+            foreach ($records as $record) {
+                $timeFormatted = Carbon::parse($record->time)->format('h:i A');
+                $logs[] = [
+                    'type' => $record->type,
+                    'time' => $timeFormatted
+                ];
+
+                if ($record->type === 'in') {
+                    $tempIn = Carbon::parse($record->date->toDateString() . ' ' . $record->time);
+                } elseif ($record->type === 'out' && $tempIn) {
+                    $currentOut = Carbon::parse($record->date->toDateString() . ' ' . $record->time);
+                    $totalSeconds += $currentOut->diffInSeconds($tempIn);
+                    $tempIn = null;
+                }
+            }
+
+            // Calculation of hours
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds / 60) % 60);
+            $durationFormatted = "{$hours}h {$minutes}m";
 
             $history[] = [
                 'id' => $date,
                 'date' => Carbon::parse($date)->format('d-m-Y'),
                 'day' => Carbon::parse($date)->format('l'),
-                'checkIn' => $checkIn ? Carbon::parse($checkIn->time)->format('h:i A') : '-',
-                'checkOut' => $checkOut ? Carbon::parse($checkOut->time)->format('h:i A') : '-',
-                'status' => $checkIn ? 'Present' : 'Absent'
+                'duration' => $durationFormatted,
+                'logs' => $logs,
+                'status' => count($records) > 0 ? 'Present' : 'Absent'
             ];
         }
 
