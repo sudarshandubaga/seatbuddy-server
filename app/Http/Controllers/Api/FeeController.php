@@ -13,25 +13,36 @@ class FeeController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user()->load('library');
-        if (!$user->library) {
+        if (!$user->library->id && $user->role === 'library') {
             return response()->json(['status' => false, 'message' => 'Library not found'], 404);
         }
-        $libraryId = $user->library->id;
 
-        $query = Fees::with(['student', 'student.user'])
-            ->whereHas('student', function ($q) use ($libraryId) {
+        $query = Fees::with(['student', 'student.user']);
+
+        if ($user->role === 'library') {
+            $libraryId = $user->library_id;
+            $query->whereHas('student', function ($q) use ($libraryId) {
                 $q->where('library_id', $libraryId);
             });
+
+            if ($request->has('student_id')) {
+                $query->where('student_id', $request->student_id);
+            }
+        } else {
+            // Student role
+            $student = Student::where('user_id', $user->id)->first();
+            if (!$student) {
+                return response()->json(['status' => false, 'message' => 'Student record not found'], 404);
+            }
+            $query->where('student_id', $student->id);
+            $libraryId = $student->library_id;
+        }
 
         if ($request->has('status') && in_array($request->status, ['paid', 'due'])) {
             $query->where('status', $request->status);
         }
 
-        if ($request->has('student_id')) {
-            $query->where('student_id', $request->student_id);
-        }
-
-        if ($request->has('search')) {
+        if ($request->has('search') && $user->role === 'library') {
             $search = $request->search;
             $query->whereHas('student.user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -47,19 +58,23 @@ class FeeController extends Controller
 
         $fees = $query->orderBy('date', 'desc')->get();
 
-        // Calculate stats with filters
-        $statsQuery = Fees::whereHas('student', function ($q) use ($libraryId) {
-            $q->where('library_id', $libraryId);
-        });
+        // Calculate stats
+        $statsQuery = Fees::query();
+        if ($user->role === 'library') {
+            $statsQuery->whereHas('student', function ($q) use ($libraryId) {
+                $q->where('library_id', $libraryId);
+            });
+            if ($request->has('student_id')) {
+                $statsQuery->where('student_id', $request->student_id);
+            }
+        } else {
+            $statsQuery->where('student_id', $student->id);
+        }
 
         if ($request->has('month')) {
             $year = $request->get('year', date('Y'));
             $statsQuery->whereMonth('date', $request->month)
                 ->whereYear('date', $year);
-        }
-
-        if ($request->has('student_id')) {
-            $statsQuery->where('student_id', $request->student_id);
         }
 
         $totalDue = (clone $statsQuery)->where('status', 'due')->sum('amount');
@@ -77,6 +92,11 @@ class FeeController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
+        if ($user->role !== 'library') {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 403);
+        }
+
         $fee = Fees::findOrFail($id);
 
         $request->validate([
