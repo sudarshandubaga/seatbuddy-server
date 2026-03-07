@@ -30,10 +30,7 @@ class FeeController extends Controller
             }
         } else {
             // Student role
-            $student = Student::where('user_id', $user->id)->first();
-            if (!$student) {
-                return response()->json(['status' => false, 'message' => 'Student record not found'], 404);
-            }
+            $student = Student::where('user_id', $user->id)->firstOrFail();
             $query->where('student_id', $student->id);
             $libraryId = $student->library_id;
         }
