@@ -20,7 +20,7 @@ class FeeController extends Controller
         $query = Fees::with(['student', 'student.user']);
 
         if ($user->role === 'library') {
-            $libraryId = $user->library_id;
+            $libraryId = $user->library->id;
             $query->whereHas('student', function ($q) use ($libraryId) {
                 $q->where('library_id', $libraryId);
             });
