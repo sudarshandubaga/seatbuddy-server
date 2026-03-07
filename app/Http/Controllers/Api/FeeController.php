@@ -51,9 +51,11 @@ class FeeController extends Controller
         }
 
         if ($request->has('month')) {
-            $year = $request->get('year', date('Y'));
-            $query->whereMonth('date', $request->month)
-                ->whereYear('date', $year);
+            $query->whereMonth('date', $request->month);
+        }
+
+        if ($request->has('year')) {
+            $query->whereYear('date', $request->year);
         }
 
         $fees = $query->orderBy('date', 'desc')->get();
@@ -72,9 +74,11 @@ class FeeController extends Controller
         }
 
         if ($request->has('month')) {
-            $year = $request->get('year', date('Y'));
-            $statsQuery->whereMonth('date', $request->month)
-                ->whereYear('date', $year);
+            $statsQuery->whereMonth('date', $request->month);
+        }
+
+        if ($request->has('year')) {
+            $statsQuery->whereYear('date', $request->year);
         }
 
         $totalDue = (clone $statsQuery)->where('status', 'due')->sum('amount');
