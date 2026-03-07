@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\User;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -81,26 +82,41 @@ class AttendanceController extends Controller
         $targetUserId = $request->user_id ?? $user->id;
 
         if ($user->role === 'library' && $targetUserId) {
-            $student = User::where('id', $targetUserId)->where('library_id', $user->library_id)->first();
-            if (!$student) {
+            $studentUser = User::with('student')->where('id', $targetUserId)->where('library_id', $user->library_id)->first();
+            if (!$studentUser) {
                 return response()->json(['message' => 'Student not found or access denied'], 403);
             }
+            $student = $studentUser->student;
         } elseif ($user->role === 'student') {
             $targetUserId = $user->id;
+            $student = Student::where('user_id', $user->id)->first();
         }
 
         // Handle filters
-        $month = $request->get('month', Carbon::now()->month);
-        $year = $request->get('year', Carbon::now()->year);
+        $month = intval($request->get('month', Carbon::now()->month));
+        $year = intval($request->get('year', Carbon::now()->year));
 
         $startOfMonth = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $endOfMonth = clone $startOfMonth;
         $endOfMonth->endOfMonth();
 
+        // Respect joining date
+        if ($student && $student->join_date) {
+            $joinDate = Carbon::parse($student->join_date)->startOfDay();
+            if ($startOfMonth->lessThan($joinDate)) {
+                $startOfMonth = clone $joinDate;
+            }
+        }
+
         // Don't show future dates
-        $today = Carbon::now();
+        $today = Carbon::now()->endOfDay();
         if ($endOfMonth->greaterThan($today)) {
             $endOfMonth = $today;
+        }
+
+        // If after adjusting for join_date and today, start is after end, return empty
+        if ($startOfMonth->greaterThan($endOfMonth)) {
+            return response()->json([]);
         }
 
         // Fetch records for the selected month (sequential for pairing)
