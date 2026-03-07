@@ -89,8 +89,23 @@ class AttendanceController extends Controller
             $targetUserId = $user->id;
         }
 
-        // Fetch all records sequentially to pair IN/OUT correctly
+        // Handle filters
+        $month = $request->get('month', Carbon::now()->month);
+        $year = $request->get('year', Carbon::now()->year);
+
+        $startOfMonth = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $endOfMonth = clone $startOfMonth;
+        $endOfMonth->endOfMonth();
+
+        // Don't show future dates
+        $today = Carbon::now();
+        if ($endOfMonth->greaterThan($today)) {
+            $endOfMonth = $today;
+        }
+
+        // Fetch records for the selected month (sequential for pairing)
         $attendances = Attendance::where('user_id', $targetUserId)
+            ->whereBetween('date', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
             ->orderBy('date', 'asc')
             ->orderBy('time', 'asc')
             ->get();
@@ -112,14 +127,12 @@ class AttendanceController extends Controller
                 ];
             }
 
-            // Log time formatting
             $timeFormatted = Carbon::parse($record->time)->format('h:i A');
             $processedHistory[$dateString]['logs'][] = [
                 'type' => $record->type,
                 'time' => $timeFormatted
             ];
 
-            // Precise calculation logic
             $recordDateTime = Carbon::parse($dateString . ' ' . $record->time);
 
             if ($record->type === 'in') {
@@ -138,20 +151,8 @@ class AttendanceController extends Controller
             }
         }
 
-        // Generate full month history including absent days
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $today = Carbon::now();
-
-        // If the student has records from before this month, we might want to start from the first record instead
-        if (count($attendances) > 0) {
-            $firstRecordDate = Carbon::parse($attendances->first()->date);
-            if ($firstRecordDate->lessThan($startOfMonth)) {
-                $startOfMonth = $firstRecordDate;
-            }
-        }
-
         $fullHistory = [];
-        for ($date = clone $startOfMonth; $date->lte($today); $date->addDay()) {
+        for ($date = clone $startOfMonth; $date->lte($endOfMonth); $date->addDay()) {
             $dateString = $date->toDateString();
 
             if (isset($processedHistory[$dateString])) {
@@ -175,7 +176,6 @@ class AttendanceController extends Controller
             }
         }
 
-        // Show most recent dates first
         return response()->json(array_reverse($fullHistory));
     }
 }
