@@ -12,15 +12,26 @@ class FeeController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user()->load('library');
-        if (!$user->library->id && $user->role === 'library') {
+        $user = auth()->user();
+
+        $libraryId = null;
+        if ($user->role === 'library') {
+            $user->load('library');
+            $libraryId = $user->library->id ?? null;
+        }
+
+        if ($user->role === 'student') {
+            $user->load('student');
+            $libraryId = $user->student->library_id ?? null;
+        }
+
+        if (!$libraryId && $user->role === 'library') {
             return response()->json(['status' => false, 'message' => 'Library not found'], 404);
         }
 
         $query = Fees::with(['student', 'student.user']);
 
         if ($user->role === 'library') {
-            $libraryId = $user->library->id;
             $query->whereHas('student', function ($q) use ($libraryId) {
                 $q->where('library_id', $libraryId);
             });
@@ -30,9 +41,7 @@ class FeeController extends Controller
             }
         } else {
             // Student role
-            $student = Student::where('user_id', $user->id)->firstOrFail();
-            $query->where('student_id', $student->id);
-            $libraryId = $student->library_id;
+            $query->where('student_id', $user->student->id);
         }
 
         if ($request->has('status') && in_array($request->status, ['paid', 'due'])) {
