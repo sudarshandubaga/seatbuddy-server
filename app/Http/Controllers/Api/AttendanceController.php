@@ -80,7 +80,7 @@ class AttendanceController extends Controller
         $user = auth()->user();
         $targetUserId = $request->user_id ?? $user->id;
 
-        if ($user->role === 'library' && $request->user_id) {
+        if ($user->role === 'library' && $targetUserId) {
             $student = User::where('id', $targetUserId)->where('library_id', $user->library_id)->first();
             if (!$student) {
                 return response()->json(['message' => 'Student not found or access denied'], 403);
@@ -123,41 +123,59 @@ class AttendanceController extends Controller
             $recordDateTime = Carbon::parse($dateString . ' ' . $record->time);
 
             if ($record->type === 'in') {
-                // If we have an unmatched 'in', we update it to the latest one
-                // This prevents massive incorrect durations if someone forgot to scan OUT previously.
                 $tempIn = $recordDateTime;
             } elseif ($record->type === 'out' && $tempIn) {
-                // Calculate duration using the exact timestamps
                 $seconds = $recordDateTime->diffInSeconds($tempIn);
 
-                // Only add if it's a positive logical duration
-                // diffInSeconds is absolute by default, but we check logic
                 if ($recordDateTime->greaterThan($tempIn)) {
-                    // Credit the duration to the date the session started
                     $startDateString = $tempIn->toDateString();
                     if (isset($processedHistory[$startDateString])) {
                         $processedHistory[$startDateString]['totalSeconds'] += $seconds;
                     }
                 }
 
-                $tempIn = null; // Session closed/paired
+                $tempIn = null;
             }
         }
 
-        // Final formatting
-        $finalHistory = [];
-        foreach ($processedHistory as $date => $data) {
-            $totalSeconds = $data['totalSeconds'];
-            $hours = floor($totalSeconds / 3600);
-            $minutes = floor(($totalSeconds / 60) % 60);
+        // Generate full month history including absent days
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $today = Carbon::now();
 
-            // Format as "03 h : 30 m" to match user request
-            $data['duration'] = sprintf('%02d h : %02d m', $hours, $minutes);
-            unset($data['totalSeconds']);
-            $finalHistory[] = $data;
+        // If the student has records from before this month, we might want to start from the first record instead
+        if (count($attendances) > 0) {
+            $firstRecordDate = Carbon::parse($attendances->first()->date);
+            if ($firstRecordDate->lessThan($startOfMonth)) {
+                $startOfMonth = $firstRecordDate;
+            }
+        }
+
+        $fullHistory = [];
+        for ($date = clone $startOfMonth; $date->lte($today); $date->addDay()) {
+            $dateString = $date->toDateString();
+
+            if (isset($processedHistory[$dateString])) {
+                $data = $processedHistory[$dateString];
+                $totalSeconds = $data['totalSeconds'];
+                $hours = floor($totalSeconds / 3600);
+                $minutes = floor(($totalSeconds / 60) % 60);
+
+                $data['duration'] = sprintf('%02d h : %02d m', $hours, $minutes);
+                unset($data['totalSeconds']);
+                $fullHistory[] = $data;
+            } else {
+                $fullHistory[] = [
+                    'id' => $dateString,
+                    'date' => $date->format('d-m-Y'),
+                    'day' => $date->format('l'),
+                    'duration' => '00 h : 00 m',
+                    'logs' => [],
+                    'status' => 'Absent'
+                ];
+            }
         }
 
         // Show most recent dates first
-        return response()->json(array_reverse($finalHistory));
+        return response()->json(array_reverse($fullHistory));
     }
 }
