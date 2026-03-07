@@ -93,35 +93,43 @@ class AttendanceController extends Controller
         }
 
         // Handle filters
+        $hasMonthFilter = $request->has('month');
         $month = intval($request->get('month', Carbon::now()->month));
         $year = intval($request->get('year', Carbon::now()->year));
 
-        $startOfMonth = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-        $endOfMonth = clone $startOfMonth;
-        $endOfMonth->endOfMonth();
+        if ($hasMonthFilter) {
+            $startRange = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+            $endRange = clone $startRange;
+            $endRange->endOfMonth();
+        } else {
+            // Full Year View
+            $startRange = Carbon::createFromDate($year, 1, 1)->startOfYear();
+            $endRange = clone $startRange;
+            $endRange->endOfYear();
+        }
 
         // Respect joining date
         if ($student && $student->join_date) {
             $joinDate = Carbon::parse($student->join_date)->startOfDay();
-            if ($startOfMonth->lessThan($joinDate)) {
-                $startOfMonth = clone $joinDate;
+            if ($startRange->lessThan($joinDate)) {
+                $startRange = clone $joinDate;
             }
         }
 
         // Don't show future dates
         $today = Carbon::now()->endOfDay();
-        if ($endOfMonth->greaterThan($today)) {
-            $endOfMonth = $today;
+        if ($endRange->greaterThan($today)) {
+            $endRange = $today;
         }
 
-        // If after adjusting for join_date and today, start is after end, return empty
-        if ($startOfMonth->greaterThan($endOfMonth)) {
+        // If after adjusting, start is after end, return empty
+        if ($startRange->greaterThan($endRange)) {
             return response()->json([]);
         }
 
-        // Fetch records for the selected month (sequential for pairing)
+        // Fetch records for the range
         $attendances = Attendance::where('user_id', $targetUserId)
-            ->whereBetween('date', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
+            ->whereBetween('date', [$startRange->toDateString(), $endRange->toDateString()])
             ->orderBy('date', 'asc')
             ->orderBy('time', 'asc')
             ->get();
@@ -155,20 +163,18 @@ class AttendanceController extends Controller
                 $tempIn = $recordDateTime;
             } elseif ($record->type === 'out' && $tempIn) {
                 $seconds = $recordDateTime->diffInSeconds($tempIn);
-
                 if ($recordDateTime->greaterThan($tempIn)) {
                     $startDateString = $tempIn->toDateString();
                     if (isset($processedHistory[$startDateString])) {
                         $processedHistory[$startDateString]['totalSeconds'] += $seconds;
                     }
                 }
-
                 $tempIn = null;
             }
         }
 
         $fullHistory = [];
-        for ($date = clone $startOfMonth; $date->lte($endOfMonth); $date->addDay()) {
+        for ($date = clone $startRange; $date->lte($endRange); $date->addDay()) {
             $dateString = $date->toDateString();
 
             if (isset($processedHistory[$dateString])) {
