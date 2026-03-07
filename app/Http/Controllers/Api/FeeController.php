@@ -76,7 +76,7 @@ class FeeController extends Controller
                 $statsQuery->where('student_id', $request->student_id);
             }
         } else {
-            $statsQuery->where('student_id', $student->id);
+            $statsQuery->where('student_id', $user->student->id);
         }
 
         if ($request->has('month')) {
