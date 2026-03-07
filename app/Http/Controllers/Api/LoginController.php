@@ -46,6 +46,20 @@ class LoginController extends Controller
         // Create token
         $token = $user->createToken('api-token')->plainTextToken;
 
+        // Save Device Information if provided
+        if ($request->has('device_token') && $request->has('device_id')) {
+            \App\Models\Device::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'device_id' => $request->device_id
+                ],
+                [
+                    'device_token' => $request->device_token,
+                    'device_type' => $request->get('device_type', 'android')
+                ]
+            );
+        }
+
         if ($user->role == "student") {
             $user->load(['student', 'student.slotPackage']);
         } else if ($user->role == "library") {
@@ -62,7 +76,16 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if ($user) {
+            if ($request->has('device_id')) {
+                \App\Models\Device::where([
+                    'user_id' => $user->id,
+                    'device_id' => $request->device_id
+                ])->update(['device_token' => '']);
+            }
+            $user->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'status' => true,
