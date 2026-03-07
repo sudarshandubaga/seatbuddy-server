@@ -30,6 +30,15 @@ class FeesCronController extends Controller
                     $fees->amount = $student->slotPackage->price;
                     $fees->date = Carbon::now()->toDateString();
                     $fees->save();
+
+                    // Create Notification Entry
+                    \App\Models\Notification::create([
+                        'user_id' => $student->user_id,
+                        'title' => 'Monthly Fee Generated',
+                        'description' => 'Your subscription bill for ' . Carbon::now()->format('F Y') . ' of ₹' . number_format($student->slotPackage->price, 2) . ' is now available. Please clear it by this week.',
+                        'purpose' => 'fees'
+                    ]);
+
                     $count++;
                 }
             }
