@@ -159,4 +159,39 @@ class RegistrationController extends Controller
             ], 400);
         }
     }
+
+    public function checkUniqueness(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|max:4',
+            'user_suffix' => 'required|string|max:4',
+        ]);
+
+        $code = $request->code;
+        $loginName = $code . $request->user_suffix;
+
+        $codeExists = Library::where('code', $code)->exists();
+        $loginNameExists = User::where('login_name', $loginName)->exists();
+
+        if ($codeExists) {
+            return response()->json([
+                'status' => false,
+                'message' => 'The Library Code is already taken.',
+                'field' => 'code'
+            ], 422);
+        }
+
+        if ($loginNameExists) {
+            return response()->json([
+                'status' => false,
+                'message' => 'The User ID (Code + Suffix) is already taken.',
+                'field' => 'user_id'
+            ], 422);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Available'
+        ]);
+    }
 }

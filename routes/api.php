@@ -36,6 +36,7 @@ Route::group(['prefix' => 'library-app'], function () {
     Route::post('/login', [LoginController::class, 'doLogin']);
     Route::post('/register', [\App\Http\Controllers\Api\RegistrationController::class, 'register']);
     Route::post('/verify-payment', [\App\Http\Controllers\Api\RegistrationController::class, 'verifyPayment']);
+    Route::post('/check-uniqueness', [\App\Http\Controllers\Api\RegistrationController::class, 'checkUniqueness']);
     Route::post('/forgot-password', [LoginController::class, 'forgotPassword']);
     Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index']);
 
