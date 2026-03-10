@@ -19,4 +19,9 @@ class SlotPackage extends Model
             $model->id = (string) Str::uuid();
         });
     }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'slot_package_id');
+    }
 }

@@ -15,6 +15,7 @@ class SlotPackageController extends Controller
     {
         $authUser = $request->user()->load('library');
         $packages = SlotPackage::where('library_id', $authUser->library->id)
+            ->withCount(['students as active_students'])
             ->orderBy('created_at', 'desc')
             ->get();
 
