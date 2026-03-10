@@ -15,7 +15,9 @@ class AttendanceController extends Controller
     public function index()
     {
         $user = auth()->user()->load('library');
-        $attendances = User::with('attendances')->where('library_id', $user->library->id)->where('role', 'student')->get();
+        $attendances = User::with('attendances')->whereHas('student', function ($q) use ($user) {
+            $q->where('library_id', $user->library->id);
+        })->where('role', 'student')->get();
         return response()->json($attendances);
     }
 
@@ -82,7 +84,9 @@ class AttendanceController extends Controller
         $targetUserId = $request->user_id ?? $user->id;
 
         if ($user->role === 'library' && $targetUserId) {
-            $studentUser = User::with('student')->where('id', $targetUserId)->where('library_id', $user->library_id)->first();
+            $studentUser = User::with('student')->where('id', $targetUserId)->whereHas('student', function ($q) use ($user) {
+                $q->where('library_id', $user->library_id);
+            })->first();
             if (!$studentUser) {
                 return response()->json(['message' => 'Student not found or access denied'], 403);
             }
