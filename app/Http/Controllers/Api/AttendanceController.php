@@ -80,12 +80,12 @@ class AttendanceController extends Controller
 
     public function history(Request $request)
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('library');
         $targetUserId = $request->user_id ?? $user->id;
 
         if ($user->role === 'library' && $targetUserId) {
             $studentUser = User::with('student')->where('id', $targetUserId)->whereHas('student', function ($q) use ($user) {
-                $q->where('library_id', $user->library_id);
+                $q->where('library_id', $user->library->id);
             })->first();
             if (!$studentUser) {
                 return response()->json(['message' => 'Student not found or access denied'], 403);
