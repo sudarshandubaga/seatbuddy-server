@@ -83,10 +83,26 @@ class StudentController extends Controller
             'gender' => 'nullable|in:male,female,other',
         ]);
 
+        $libraryCode = $authUser->library->code;
+        $loginName = $request->login_name;
+
+        // Ensure login_name starts with library code
+        if (!\Illuminate\Support\Str::startsWith($loginName, $libraryCode)) {
+            $loginName = $libraryCode . $loginName;
+        }
+
+        // Secondary check for uniqueness after prefixing
+        if (\App\Models\User::where('login_name', $loginName)->exists()) {
+            return response()->json([
+                'message' => 'The login name (with prefix) has already been taken.',
+                'errors' => ['login_name' => ['The login name has already been taken.']]
+            ], 422);
+        }
+
         $user = User::create([
             'id' => Str::uuid(),
             'name' => $request->name,
-            'login_name' => $request->login_name,
+            'login_name' => $loginName,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
