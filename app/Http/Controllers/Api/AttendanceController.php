@@ -28,7 +28,20 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
+            'library_code' => 'required|string',
         ]);
+
+        $authUser = auth()->user();
+
+        // 🚨 Security: Students can only mark their own attendance
+        if ($authUser->role === 'student' && $authUser->id !== $request->user_id) {
+            return response()->json(['message' => 'Unauthorized attendance marking.'], 403);
+        }
+
+        // 🚨 Security: Verify library code matches student's linked library
+        if ($authUser->role === 'student' && $authUser->library_code !== $request->library_code) {
+            return response()->json(['message' => 'Invalid library QR code. You can only mark attendance for your linked library.'], 403);
+        }
 
         $now = Carbon::now();
 

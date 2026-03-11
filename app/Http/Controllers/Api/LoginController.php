@@ -61,7 +61,7 @@ class LoginController extends Controller
         }
 
         if ($user->role == "student") {
-            $user->load(['student', 'student.slotPackage']);
+            $user->load(['student', 'student.slotPackage', 'student.library']);
         } else if ($user->role == "library") {
             $user->load(['library', 'library.plan']);
         }
