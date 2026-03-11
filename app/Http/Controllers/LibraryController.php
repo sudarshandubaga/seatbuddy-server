@@ -29,7 +29,7 @@ class LibraryController extends Controller
             'valid_upto' => 'required|date',
             'code' => 'required|string|unique:libraries,code|max:4',
             'logo' => 'nullable|image|max:2048',
-            'no_of_tables' => 'nullable|integer',
+            // 'no_of_tables' => 'nullable|integer',
             'plan_id' => 'required|exists:subscription_plans,id',
         ];
 
@@ -37,7 +37,8 @@ class LibraryController extends Controller
             $rules['owner_name'] = 'required|string|max:255';
             $rules['password'] = 'required|string|min:6';
             $rules['user_suffix'] = 'required|string|max:4';
-        } else {
+        }
+        else {
             $rules['user_id'] = 'required|exists:users,id';
         }
 
@@ -48,7 +49,7 @@ class LibraryController extends Controller
 
             if ($createNewUser) {
                 $loginName = $validated['code'] . $validated['user_suffix'];
-                
+
                 // Double check login name uniqueness
                 if (\App\Models\User::where('login_name', $loginName)->exists()) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
@@ -84,7 +85,7 @@ class LibraryController extends Controller
                 'code' => $validated['code'],
                 'user_id' => $userId,
                 'logo' => $validated['logo'] ?? null,
-                'no_of_tables' => $validated['no_of_tables'] ?? 0,
+                // 'no_of_tables' => $validated['no_of_tables'] ?? 0,
                 'subscription_plan_id' => $validated['plan_id'],
             ]);
 
@@ -118,7 +119,7 @@ class LibraryController extends Controller
             'code' => 'string|unique:libraries,code,' . $library->id,
             'user_id' => 'exists:users,id',
             'logo' => 'nullable|image|max:2048',
-            'no_of_tables' => 'nullable|integer',
+            // 'no_of_tables' => 'nullable|integer',
             'plan_id' => 'nullable|exists:subscription_plans,id',
         ]);
 
