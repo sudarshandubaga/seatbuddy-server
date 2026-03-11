@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::apiResource('users', \App\Http\Controllers\UserController::class);
+    Route::post('/admin/notifications', [\App\Http\Controllers\AdminNotificationController::class, 'store']);
 
     Route::apiResource('libraries', LibraryController::class);
     Route::apiResource('subscription-plans', SubscriptionPlanController::class);

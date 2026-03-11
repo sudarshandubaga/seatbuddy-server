@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import LibraryStore from './pages/Library/index';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import Users from './pages/Users';
+import SendNotifications from './pages/SendNotifications';
 import AdminLayout from './layouts/AdminLayout';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
                     <Route path="libraries" element={<LibraryStore />} />
                     <Route path="subscriptions" element={<SubscriptionPlans />} />
                     <Route path="users" element={<Users />} />
+                    <Route path="notifications" element={<SendNotifications />} />
                 </Route>
             </Routes>
         </BrowserRouter>

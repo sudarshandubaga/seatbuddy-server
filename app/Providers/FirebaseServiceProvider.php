@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Log;
 use App\Models\Notification;
 
 class FirebaseServiceProvider extends ServiceProvider
@@ -43,7 +44,7 @@ class FirebaseServiceProvider extends ServiceProvider
     {
         $serverKey = env('FCM_SERVER_KEY');
         if (!$serverKey) {
-            \Log::warning("FCM_SERVER_KEY not set. Skipping push to $token: $title - $body");
+            Log::warning("FCM_SERVER_KEY not set. Skipping push to $token: $title - $body");
             return;
         }
 
@@ -74,6 +75,6 @@ class FirebaseServiceProvider extends ServiceProvider
         $response = curl_exec($ch);
         curl_close($ch);
 
-        \Log::info("FCM Response for $token: " . $response);
+        Log::info("FCM Response for $token: " . $response);
     }
 }
