@@ -63,6 +63,9 @@ Route::group(['prefix' => 'library-app'], function () {
 
         Route::post('/student/{id}/toggle-status', [\App\Http\Controllers\Api\StudentController::class, 'toggleStatus']);
 
+        Route::get('/sms-templates', [\App\Http\Controllers\Api\SmsTemplateController::class, 'index']);
+        Route::post('/sms-templates', [\App\Http\Controllers\Api\SmsTemplateController::class, 'update']);
+
         Route::apiResources([
             'slot-package' => SlotPackageController::class,
             'student' => StudentController::class,

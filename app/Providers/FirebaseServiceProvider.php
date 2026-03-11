@@ -41,8 +41,39 @@ class FirebaseServiceProvider extends ServiceProvider
 
     protected function sendPushNotification($token, $title, $body)
     {
-        // Place for Firebase Admin SDK or direct API call
-        // For now, logging the action
-        \Log::info("Sending push to $token: $title - $body");
+        $serverKey = env('FCM_SERVER_KEY');
+        if (!$serverKey) {
+            \Log::warning("FCM_SERVER_KEY not set. Skipping push to $token: $title - $body");
+            return;
+        }
+
+        $data = [
+            "to" => $token,
+            "notification" => [
+                "title" => $title,
+                "body" => $body,
+                "sound" => "default"
+            ]
+        ];
+        
+        $dataString = json_encode($data);
+
+        $headers = [
+            'Authorization: key=' . $serverKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
+        
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        \Log::info("FCM Response for $token: " . $response);
     }
 }

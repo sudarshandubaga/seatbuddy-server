@@ -21,6 +21,45 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string',
+            'description' => 'required|string',
+            'student_id' => 'required' // 'all' or specific student user_id
+        ]);
+
+        $user = auth()->user();
+        
+        if ($user->role !== 'library') {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        if ($request->student_id === 'all') {
+            $students = \App\Models\User::where('role', 'student')
+                ->where('library_code', $user->library_code)
+                ->get();
+
+            foreach ($students as $student) {
+                Notification::create([
+                    'user_id' => $student->id,
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'purpose' => 'general'
+                ]);
+            }
+        } else {
+            Notification::create([
+                'user_id' => $request->student_id,
+                'title' => $request->title,
+                'description' => $request->description,
+                'purpose' => 'general'
+            ]);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Notification sent successfully']);
+    }
+
     public function update(Request $request, $id)
     {
         $user = auth()->user();
