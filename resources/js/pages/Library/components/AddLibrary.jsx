@@ -109,73 +109,116 @@ export default function AddLibrary({ isOpen, onClose, editingLibrary, users, onS
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-            <div className="bg-white rounded-xl p-8 w-full max-w-4xl my-8">
-                <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto p-4 py-12">
+            <div className="bg-white rounded-2xl p-8 w-full max-w-6xl shadow-2xl relative">
+                <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h3 className="text-2xl font-bold text-gray-800">{editingLibrary ? 'Edit Library' : 'Add New Library'}</h3>
-                        <p className="text-gray-500 text-sm">Fill in the details to {editingLibrary ? 'update' : 'register'} the library business.</p>
+                        <h3 className="text-2xl font-black text-gray-900 tracking-tight">{editingLibrary ? 'Edit Library' : 'Add New Library'}</h3>
+                        <p className="text-gray-500 text-sm font-medium">Register and configure the library business profile.</p>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-10">
                     {/* Section 1: Business Info */}
                     <div>
-                        <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-4 border-b pb-2">Business Information</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <h4 className="flex items-center text-xs font-black text-blue-600 uppercase tracking-[0.2em] mb-6">
+                            <span className="bg-blue-600 w-2 h-2 rounded-full mr-2"></span>
+                            Business Information
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Library Name *</label>
-                                <input name="name" value={formData.name} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Central City Library" />
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Library Name *</label>
+                                <input name="name" value={formData.name} onChange={handleInputChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="e.g. Central City Library" />
                             </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
-                                <textarea name="address" value={formData.address} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" rows="2" placeholder="Full physical address" />
+                            <div className="md:col-span-1">
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Library Code (4 Digits) *</label>
+                                <input name="code" maxLength="4" value={formData.code} onChange={handleInputChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono tracking-widest" placeholder="XXXX" />
+                            </div>
+                            <div className="md:col-span-3">
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Address *</label>
+                                <textarea name="address" value={formData.address} onChange={handleInputChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" rows="2" placeholder="Full physical address" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-                                <input name="latitude" type="number" step="any" value={formData.latitude} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Latitude</label>
+                                <input name="latitude" type="number" step="any" value={formData.latitude} onChange={handleInputChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-                                <input name="longitude" type="number" step="any" value={formData.longitude} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Longitude</label>
+                                <input name="longitude" type="number" step="any" value={formData.longitude} onChange={handleInputChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Logo</label>
+                                <input name="logo" type="file" onChange={handleInputChange} className="w-full px-4 py-2 bg-gray-50 border border-dashed border-gray-200 rounded-xl focus:bg-white outline-none text-xs" />
                             </div>
                         </div>
                     </div>
 
-                    {/* Section 2: Owner/Admin Settings */}
+                    {/* Section 2: Owner & Subscription */}
                     <div>
-                        <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-4 border-b pb-2">Owner & Admin Details</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <h4 className="flex items-center text-xs font-black text-blue-600 uppercase tracking-[0.2em] mb-6">
+                            <span className="bg-blue-600 w-2 h-2 rounded-full mr-2"></span>
+                            Ownership & Access
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {!editingLibrary && (
                                 <>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name *</label>
-                                        <input name="owner_name" value={formData.owner_name} onChange={handleInputChange} required={!formData.user_id} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Owner Name *</label>
+                                        <input name="owner_name" value={formData.owner_name} onChange={handleInputChange} required={!formData.user_id} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                                        <input name="password" type="password" value={formData.password} onChange={handleInputChange} required={!formData.user_id} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Min 6 characters" />
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Password *</label>
+                                        <input name="password" type="password" value={formData.password} onChange={handleInputChange} required={!formData.user_id} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Min 6 characters" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">User ID Suffix (4 Digits) *</label>
+                                        <input name="user_suffix" maxLength="4" value={formData.user_suffix} onChange={handleInputChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono tracking-widest" placeholder="YYYY" />
                                     </div>
                                 </>
                             )}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                                <input name="email" type="email" value={formData.email} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Email Address *</label>
+                                <input name="email" type="email" value={formData.email} onChange={handleInputChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone/Mobile *</label>
-                                <input name="phone" value={formData.phone} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Phone/Mobile *</label>
+                                <input name="phone" value={formData.phone} onChange={handleInputChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+                            </div>
+                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col justify-center">
+                                <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-1">Generated User ID</p>
+                                <p className="text-2xl font-black text-blue-600 tracking-widest">
+                                    {formData.code && formData.user_suffix ? `${formData.code}${formData.user_suffix}` : (editingLibrary ? 'LOCKED' : 'XXXXYYYY')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 3: Subscription Logic */}
+                    <div className="pt-2">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Subscription Plan *</label>
+                                <select name="plan_id" value={formData.plan_id} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold">
+                                    <option value="">Select Plan</option>
+                                    {plans.map(plan => (
+                                        <option key={plan.id} value={plan.id}>{plan.name} ({plan.validity} Mo)</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Validity Date (Auto) *</label>
+                                <input name="valid_upto" type="date" value={formData.valid_upto} onChange={handleInputChange} required className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-blue-600" />
                             </div>
                             {editingLibrary && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Reassign Manager</label>
-                                    <select name="user_id" value={formData.user_id} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="">Select Manager</option>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Change Manager</label>
+                                    <select name="user_id" value={formData.user_id} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                                        <option value="">Stay Same</option>
                                         {users.map(user => (
-                                            <option key={user.id} value={user.id}>{user.name} ({user.email})</option>
+                                            <option key={user.id} value={user.id}>{user.name}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -183,50 +226,10 @@ export default function AddLibrary({ isOpen, onClose, editingLibrary, users, onS
                         </div>
                     </div>
 
-                    {/* Section 3: Access & Subscription */}
-                    <div>
-                        <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-4 border-b pb-2">Access & Subscription</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Library Code (4 Digits) *</label>
-                                <input name="code" maxLength="4" value={formData.code} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="XXXX" />
-                            </div>
-                            {!editingLibrary && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">User ID Suffix (4 Digits) *</label>
-                                    <input name="user_suffix" maxLength="4" value={formData.user_suffix} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="YYYY" />
-                                </div>
-                            )}
-                             <div className="bg-blue-50 p-3 rounded-lg flex flex-col justify-center">
-                                <p className="text-xs text-blue-600 font-bold uppercase mb-1">Final User ID Preview</p>
-                                <p className="text-xl font-black text-blue-800 tracking-widest">
-                                    {formData.code && formData.user_suffix ? `${formData.code}${formData.user_suffix}` : (editingLibrary ? 'LOCKED' : 'XXXXYYYY')}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Plan *</label>
-                                <select name="plan_id" value={formData.plan_id} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                    <option value="">Select Plan</option>
-                                    {plans.map(plan => (
-                                        <option key={plan.id} value={plan.id}>{plan.name} (Valid {plan.validity} Months)</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Valid Upto *</label>
-                                <input name="valid_upto" type="date" value={formData.valid_upto} onChange={handleInputChange} required className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Logo</label>
-                                <input name="logo" type="file" onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-dashed" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end space-x-3 pt-6 border-t font-bold">
-                        <button type="button" onClick={onClose} className="px-6 py-2 text-gray-500 hover:text-gray-800 transition-colors">Cancel</button>
-                        <button type="submit" className="px-10 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
-                            {editingLibrary ? 'Update Library' : 'Create & Register Library'}
+                    <div className="flex justify-end space-x-4 pt-4">
+                        <button type="button" onClick={onClose} className="px-8 py-3 text-gray-400 hover:text-gray-600 font-bold transition-colors">Cancel</button>
+                        <button type="submit" className="px-12 py-3 bg-gray-900 text-white rounded-xl hover:bg-black shadow-xl shadow-gray-200 transition-all font-black uppercase tracking-widest text-xs">
+                            {editingLibrary ? 'Save Changes' : 'Register Library'}
                         </button>
                     </div>
                 </form>
