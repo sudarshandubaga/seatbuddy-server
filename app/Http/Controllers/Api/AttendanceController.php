@@ -14,6 +14,7 @@ class AttendanceController extends Controller
 {
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user()->load('library');
         $attendances = User::with('attendances')->whereHas('student', function ($q) use ($user) {
             $q->where('library_id', $user->library->id);
@@ -31,6 +32,7 @@ class AttendanceController extends Controller
             'library_code' => 'required|string',
         ]);
 
+        /** @var \App\Models\User $authUser */
         $authUser = auth()->user();
 
         // 🚨 Security: Students can only mark their own attendance
@@ -86,6 +88,7 @@ class AttendanceController extends Controller
             'date' => 'required|date',
         ]);
 
+        /** @var \App\Models\User $user */
         $user = auth()->user();
         $attendance = Attendance::where('user_id', $user->id)->where('date', $request->date)->get();
         return response()->json($attendance);
@@ -93,6 +96,7 @@ class AttendanceController extends Controller
 
     public function history(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user()->load('library');
         $targetUserId = $request->user_id ?? $user->id;
 
@@ -104,7 +108,8 @@ class AttendanceController extends Controller
                 return response()->json(['message' => 'Student not found or access denied'], 403);
             }
             $student = $studentUser->student;
-        } elseif ($user->role === 'student') {
+        }
+        elseif ($user->role === 'student') {
             $targetUserId = $user->id;
             $student = Student::where('user_id', $user->id)->first();
         }
@@ -118,7 +123,8 @@ class AttendanceController extends Controller
             $startRange = Carbon::createFromDate($year, $month, 1)->startOfMonth();
             $endRange = clone $startRange;
             $endRange->endOfMonth();
-        } else {
+        }
+        else {
             // Full Year View
             $startRange = Carbon::createFromDate($year, 1, 1)->startOfYear();
             $endRange = clone $startRange;
@@ -178,7 +184,8 @@ class AttendanceController extends Controller
 
             if ($record->type === 'in') {
                 $tempIn = $recordDateTime;
-            } elseif ($record->type === 'out' && $tempIn) {
+            }
+            elseif ($record->type === 'out' && $tempIn) {
                 $seconds = $recordDateTime->diffInSeconds($tempIn);
                 if ($recordDateTime->greaterThan($tempIn)) {
                     $startDateString = $tempIn->toDateString();
@@ -203,7 +210,8 @@ class AttendanceController extends Controller
                 $data['duration'] = sprintf('%02d h : %02d m', $hours, $minutes);
                 unset($data['totalSeconds']);
                 $fullHistory[] = $data;
-            } else {
+            }
+            else {
                 $fullHistory[] = [
                     'id' => $dateString,
                     'date' => $date->format('d-m-Y'),

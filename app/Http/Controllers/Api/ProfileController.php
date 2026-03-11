@@ -100,4 +100,56 @@ class ProfileController extends Controller
             'image' => $user->image
         ]);
     }
+
+    public function updateLogo(Request $request)
+    {
+        $request->validate([
+            'image' => 'required'
+        ]);
+
+        $user = auth()->user()->load('library');
+        if (!$user->library) {
+            return response()->json(['status' => false, 'message' => 'No library associated'], 400);
+        }
+
+        $base64Image = $request->image;
+        if ($base64Image && preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+            $image = substr($base64Image, strpos($base64Image, ',') + 1);
+            $type = strtolower($type[1]);
+
+            if (in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                $image = str_replace(' ', '+', $image);
+                $imageName = strtolower(Str::random(10)) . '.' . $type;
+
+                $directory = public_path('uploads/logos');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                file_put_contents($directory . '/' . $imageName, base64_decode($image));
+                // Assuming logo is saved as 'uploads/logos/name.jpg' so it can just be fetched directly, or stored like storage/app/public? Wait, the react native app expects STORAGE_URL. Wait, the avatar uses `url('uploads/profiles/...`
+                // BUT AddLibrary and LibraryController use `$request->file('logo')->store('libraries', 'public')`.
+                // If it stores in public disk, it's `libraries/name.jpg` and accessed via `storage/libraries/name.jpg`.
+                // Let's use Storage facade to match library controller.
+
+                $storagePath = 'libraries/' . $imageName;
+                Storage::disk('public')->put($storagePath, base64_decode($image));
+
+                $user->library->update([
+                    'logo' => $storagePath
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Library logo updated successfully',
+                    'logo' => $storagePath
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid image format'
+        ], 400);
+    }
 }

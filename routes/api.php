@@ -59,6 +59,7 @@ Route::group(['prefix' => 'library-app'], function () {
         Route::post('/profile/update', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
         Route::post('/profile/change-password', [\App\Http\Controllers\Api\ProfileController::class, 'changePassword']);
         Route::post('/profile/update-avatar', [\App\Http\Controllers\Api\ProfileController::class, 'updateAvatar']);
+        Route::post('/profile/update-logo', [\App\Http\Controllers\Api\ProfileController::class, 'updateLogo']);
 
         Route::post('/student/{id}/toggle-status', [\App\Http\Controllers\Api\StudentController::class, 'toggleStatus']);
 
