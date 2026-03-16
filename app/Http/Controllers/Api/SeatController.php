@@ -154,6 +154,17 @@ class SeatController extends Controller
      */
     public function destroy(Seat $seat)
     {
+        // Check if any student is currently allocated to this seat
+        $hasAllocations = Student::where('library_id', $seat->library_id)
+            ->where('seat_no', (string) $seat->seat_no)
+            ->exists();
+
+        if ($hasAllocations) {
+            return response()->json([
+                'message' => 'Cannot delete seat because students are currently allocated to it. Please unallocate them first.'
+            ], 422);
+        }
+
         $seat->delete();
 
         return response()->json([
