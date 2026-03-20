@@ -65,7 +65,10 @@ class StudentController extends Controller
             })
             ->where('role', 'student');
 
-        return response()->json($query->get());
+        return response()->json([
+            'status' => true,
+            'data' => $query->get()
+        ]);
     }
 
     // 🔹 STORE
