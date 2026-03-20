@@ -21,13 +21,18 @@ class FirebaseServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Log::debug("FirebaseServiceProvider bootstrapping...");
         Notification::created(function ($notification) {
+            Log::info("Notification created event fired for ID: {$notification->id}");
             $user = $notification->user;
             if ($user) {
+                Log::info("Target user found: {$user->id} ({$user->name})");
                 $devices = \App\Models\Device::where('user_id', $user->id)
                     ->whereNotNull('device_token')
                     ->where('device_token', '!=', '')
                     ->get();
+
+                Log::info("Found " . $devices->count() . " devices for user {$user->id}");
 
                 foreach ($devices as $device) {
                     $this->sendPushNotification(
@@ -36,6 +41,8 @@ class FirebaseServiceProvider extends ServiceProvider
                         $notification->description
                     );
                 }
+            } else {
+                Log::warning("No user found for notification ID: {$notification->id}");
             }
         });
     }
@@ -44,7 +51,8 @@ class FirebaseServiceProvider extends ServiceProvider
     {
         $serverKey = env('FCM_SERVER_KEY');
         if (!$serverKey) {
-            Log::warning("FCM_SERVER_KEY not set. Skipping push to $token: $title - $body");
+            Log::error("CRITICAL: FCM_SERVER_KEY is NOT set in .env. Push notification cancelled.");
+            Log::warning("Skipping push to $token: $title - $body");
             return;
         }
 
