@@ -42,7 +42,13 @@ class StudentController extends Controller
         $user = auth()->user()->load('library');
         $query = User::with(['student', 'student.slotPackage'])
             ->whereHas('student', function ($q) use ($user, $request) {
-                $q->where('library_id', $user->library->id);
+                if ($user->role === 'admin') {
+                    if ($request->has('library_id')) {
+                        $q->where('library_id', $request->library_id);
+                    }
+                } else {
+                    $q->where('library_id', $user->library->id);
+                }
                 if ($request->has('unallocated') && $request->unallocated == 'true') {
                     $q->whereNull('seat_no');
                 }

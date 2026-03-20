@@ -11,22 +11,38 @@ class AdminNotificationController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
-            'library_ids' => 'required' 
+            'recipient_role' => 'nullable|in:library,student',
+            'library_ids' => 'nullable',
+            'user_ids' => 'nullable'
         ]);
 
-        $libraryIds = is_array($request->library_ids) ? $request->library_ids : [$request->library_ids];
-        $isAll = in_array('all', $libraryIds);
+        $recipientRole = $request->recipient_role ?? 'library';
+        $userIds = is_array($request->user_ids) ? $request->user_ids : ($request->user_ids ? [$request->user_ids] : []);
 
-        $query = \App\Models\User::where('role', 'library');
-        if (!$isAll) {
-            $query->whereIn('id', $libraryIds);
+        if (!empty($userIds)) {
+            $query = \App\Models\User::whereIn('id', $userIds);
+        } else {
+            $libraryIds = is_array($request->library_ids) ? $request->library_ids : [$request->library_ids];
+            $isAll = in_array('all', $libraryIds);
+
+            $query = \App\Models\User::where('role', $recipientRole);
+
+            if (!$isAll) {
+                if ($recipientRole === 'library') {
+                    $query->whereIn('id', $libraryIds);
+                } else {
+                    $query->whereHas('student', function ($q) use ($libraryIds) {
+                        $q->whereIn('library_id', $libraryIds);
+                    });
+                }
+            }
         }
 
-        $libraries = $query->get();
+        $users = $query->get();
 
-        foreach ($libraries as $libUser) {
+        foreach ($users as $user) {
             \App\Models\Notification::create([
-                'user_id' => $libUser->id,
+                'user_id' => $user->id,
                 'title' => $request->title,
                 'description' => $request->description,
                 'purpose' => 'general'
@@ -35,7 +51,7 @@ class AdminNotificationController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Notification sent to libraries successfully!'
+            'message' => 'Notification sent to ' . $recipientRole . 's successfully!'
         ]);
     }
 }
