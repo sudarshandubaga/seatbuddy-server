@@ -162,6 +162,7 @@ class StudentController extends Controller
         $request->validate([
             'name' => 'sometimes|required',
             'email' => 'sometimes|required|email|unique:users,email,' . $student->user_id,
+            'password' => 'sometimes|nullable|min:6',
             'phone' => 'nullable',
             'father_name' => 'nullable',
             'notes' => 'nullable',
@@ -174,6 +175,9 @@ class StudentController extends Controller
         ]);
 
         $userData = $request->only('name', 'email', 'phone', 'address', 'gender');
+        if ($request->filled('password')) {
+            $userData['password'] = Hash::make($request->password);
+        }
         if ($request->has('image')) {
             $userData['image'] = $this->storeImage($request->image);
         }
