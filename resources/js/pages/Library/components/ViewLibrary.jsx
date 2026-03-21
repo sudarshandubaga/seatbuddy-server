@@ -21,17 +21,18 @@ export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onVi
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Address</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Contact</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Code</th>
+                            <th className="px-6 py-4 text-sm font-medium text-gray-500">Manager</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">Loading...</td>
+                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Loading...</td>
                             </tr>
                         ) : libraries.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">No libraries found</td>
+                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No libraries found</td>
                             </tr>
                         ) : (
                             libraries.map((library) => (
@@ -46,6 +47,9 @@ export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onVi
                                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                                             {library.code}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-600">
+                                        {library.user?.name || 'No Manager'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex space-x-3">
