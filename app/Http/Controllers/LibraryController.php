@@ -210,10 +210,7 @@ class LibraryController extends Controller
 
         // 4. Add Library Name
         $whiteColor = imagecolorallocate($baseImage, 255, 255, 255);
-        $fontPath = '/System/Library/Fonts/Supplemental/Arial Bold.ttf'; // Bold for the title
-        if (!file_exists($fontPath)) {
-            $fontPath = '/System/Library/Fonts/Supplemental/Arial.ttf';
-        }
+        $fontPath = public_path('fonts/ARIALBD 1.TTF');
 
         if (file_exists($fontPath)) {
             $fontSize = 32;
