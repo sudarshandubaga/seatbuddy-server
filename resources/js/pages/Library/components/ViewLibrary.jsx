@@ -1,7 +1,6 @@
-import React from 'react';
-import { Edit, Trash, Eye, Plus } from 'lucide-react';
+import { Edit, Trash, Eye, Plus, QrCode } from 'lucide-react';
 
-export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onViewDetails, onAddLibrary }) {
+export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onViewDetails, onAddLibrary, onShowQr }) {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
@@ -50,13 +49,16 @@ export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onVi
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex space-x-3">
-                                            <button onClick={() => onViewDetails(library)} className="text-gray-600 hover:text-gray-800 transition-colors">
+                                            <button onClick={() => onShowQr(library)} className="text-gray-600 hover:text-gray-800 transition-colors" title="QR Label">
+                                                <QrCode className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => onViewDetails(library)} className="text-gray-600 hover:text-gray-800 transition-colors" title="View Details">
                                                 <Eye className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => onEdit(library)} className="text-blue-600 hover:text-blue-800 transition-colors">
+                                            <button onClick={() => onEdit(library)} className="text-blue-600 hover:text-blue-800 transition-colors" title="Edit">
                                                 <Edit className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => onDelete(library.id)} className="text-red-600 hover:text-red-800 transition-colors">
+                                            <button onClick={() => onDelete(library.id)} className="text-red-600 hover:text-red-800 transition-colors" title="Delete">
                                                 <Trash className="w-4 h-4" />
                                             </button>
                                         </div>

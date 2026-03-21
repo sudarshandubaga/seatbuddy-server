@@ -21,73 +21,11 @@ export default function LibraryDetails({ library, isOpen, onClose, users = [] })
     if (!isOpen || !library) return null;
 
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(library.code)}&ecc=H`;
+    const qrLabelUrl = `/api/libraries/${library.id}/qr-code-label`;
     const mapUrl = `https://maps.google.com/maps?q=${library.latitude},${library.longitude}&z=15&output=embed`;
 
     const handlePrintQR = () => {
-        const printContent = document.getElementById('qr-label-to-print').innerHTML;
-
-        const printWindow = window.open('', '_blank', 'width=1000,height=1000');
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Print QR Label - ${library.name}</title>
-                    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-                    <style>
-                        @page { size: A4; margin: 0; }
-                        body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; font-family: sans-serif; }
-                        #print-wrapper { width: 210mm; height: 297mm; overflow: hidden; position: relative; }
-                        /* Ensure flex container works in print */
-                        .flex-container { display: flex !important; }
-                        @media print {
-                            body { background: white; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div id="print-wrapper">
-                        ${printContent}
-                    </div>
-                    <script>
-                        // Force show the content (remove hidden if any)
-                        const container = document.querySelector('#print-wrapper > div');
-                        if (container) {
-                            container.classList.remove('hidden');
-                            container.style.display = 'flex';
-                        }
-
-                        window.onload = () => {
-                            const images = Array.from(document.getElementsByTagName('img'));
-                            let loadedCount = 0;
-                            
-                            function checkReady() {
-                                loadedCount++;
-                                if (loadedCount >= images.length) {
-                                    setTimeout(() => {
-                                        window.print();
-                                        window.close();
-                                    }, 800);
-                                }
-                            }
-
-                            if (images.length === 0) {
-                                window.print();
-                                window.close();
-                            } else {
-                                images.forEach(img => {
-                                    if (img.complete) {
-                                        checkReady();
-                                    } else {
-                                        img.onload = checkReady;
-                                        img.onerror = checkReady;
-                                    }
-                                });
-                            }
-                        };
-                    </script>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
+        window.open(qrLabelUrl, '_blank');
     };
 
     return (
@@ -242,10 +180,7 @@ export default function LibraryDetails({ library, isOpen, onClose, users = [] })
                         <div className="flex flex-col items-center justify-center py-6 bg-white rounded-xl border border-dashed border-gray-300 relative group">
                             <h4 className="text-xs font-bold text-gray-400 uppercase mb-4">Unique QR Code</h4>
                             <div className="p-3 bg-white shadow-sm border border-gray-100 rounded-lg mb-3 relative">
-                                <img src={qrCodeUrl} alt="Library QR Code" className="w-32 h-32" />
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1 rounded-md shadow-sm border border-gray-50">
-                                    <img src="/logo.jpeg" alt="S" className="w-6 h-6 object-contain" />
-                                </div>
+                                <img src={qrLabelUrl} alt="Library QR Code" className="w-full h-auto rounded-lg shadow-sm border border-gray-100" />
                             </div>
                             <button
                                 onClick={handlePrintQR}

@@ -3,6 +3,7 @@ import api from '../../lib/axios';
 import ViewLibrary from './components/ViewLibrary';
 import AddLibrary from './components/AddLibrary';
 import LibraryDetails from './components/LibraryDetails';
+import QrModal from './components/QrModal';
 
 export default function LibraryStore() {
     const [libraries, setLibraries] = useState([]);
@@ -10,6 +11,7 @@ export default function LibraryStore() {
     const [users, setUsers] = useState([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showQrModal, setShowQrModal] = useState(false);
     const [selectedLibrary, setSelectedLibrary] = useState(null);
     const [editingLibrary, setEditingLibrary] = useState(null);
 
@@ -53,6 +55,11 @@ export default function LibraryStore() {
         setShowDetailsModal(true);
     };
 
+    const handleShowQr = (library) => {
+        setSelectedLibrary(library);
+        setShowQrModal(true);
+    };
+
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this library?')) return;
         try {
@@ -71,6 +78,7 @@ export default function LibraryStore() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onViewDetails={handleViewDetails}
+                onShowQr={handleShowQr}
                 onAddLibrary={handleAddClick}
             />
 
@@ -87,6 +95,12 @@ export default function LibraryStore() {
                 library={selectedLibrary}
                 users={users}
                 onClose={() => setShowDetailsModal(false)}
+            />
+
+            <QrModal
+                isOpen={showQrModal}
+                library={selectedLibrary}
+                onClose={() => setShowQrModal(false)}
             />
         </div>
     );

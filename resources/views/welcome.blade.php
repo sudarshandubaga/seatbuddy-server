@@ -273,5 +273,13 @@
         @if (Route::has('login'))
             <div class="h-14.5 hidden lg:block"></div>
         @endif
+
+        <footer class="w-full lg:max-w-4xl max-w-[335px] mt-12 mb-8 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 dark:text-gray-400 gap-4">
+            <p>&copy; {{ date('Y') }} SeatBuddy. All rights reserved.</p>
+            <div class="flex gap-6">
+                <a href="{{ route('privacy') }}" class="hover:text-primary transition-colors">Privacy Policy</a>
+                <a href="{{ route('terms') }}" class="hover:text-primary transition-colors">Terms & Conditions</a>
+            </div>
+        </footer>
     </body>
 </html>

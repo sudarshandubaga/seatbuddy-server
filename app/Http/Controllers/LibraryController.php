@@ -7,6 +7,10 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Models\SubscriptionHistory;
 use Illuminate\Http\Request;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Data\QRMatrix;
+use chillerlan\QRCode\Output\QRGdImagePNG;
 
 class LibraryController extends Controller
 {
@@ -158,5 +162,89 @@ class LibraryController extends Controller
         $library->update($validated);
 
         return response()->json($library);
+    }
+
+    public function generateQrCodeLabel(Library $library)
+    {
+        $baseImagePath = public_path('images/qr_base.png');
+        if (!file_exists($baseImagePath)) {
+            return response()->json(['error' => 'Base image not found'], 404);
+        }
+
+        // 1. Create base image from PNG
+        $baseImage = imagecreatefrompng($baseImagePath);
+        if (!$baseImage) {
+            return response()->json(['error' => 'Could not load base image'], 500);
+        }
+
+        // $primaryColor = imagecolorallocate($baseImage, 245, 48, 3); // #f53003
+
+        // 2. Generate QR Code
+        // Using chillerlan/php-qrcode which works with GD and doesn't need imagick
+        $options = new QROptions([
+            'version' => 7,
+            'outputInterface' => QRGdImagePNG::class ,
+            'scale' => 10,
+            'imageTransparent' => false,
+            'drawCircularModules' => false,
+            'keepAlive' => true,
+            'returnResource' => true,
+            'quietzoneSize' => 0, // 🔥 removes padding
+        ]);
+
+        $qrcode = new QRCode($options);
+        $srcImage = $qrcode->render($library->code);
+
+        // 3. Merge QR Code onto base image
+        // We now have a GdImage object directly from the renderer
+        $srcW = imagesx($srcImage);
+        $srcH = imagesy($srcImage);
+
+        // We want the destination to be roughly 400x400
+        $dstW = 430;
+        $dstH = 430;
+        $qrX = (595 - $dstW) / 2;
+        $qrY = 230;
+
+        imagecopyresampled($baseImage, $srcImage, $qrX, $qrY, 0, 0, $dstW, $dstH, $srcW, $srcH);
+
+        // 4. Add Library Name
+        $whiteColor = imagecolorallocate($baseImage, 255, 255, 255);
+        $fontPath = '/System/Library/Fonts/Supplemental/Arial Bold.ttf'; // Bold for the title
+        if (!file_exists($fontPath)) {
+            $fontPath = '/System/Library/Fonts/Supplemental/Arial.ttf';
+        }
+
+        if (file_exists($fontPath)) {
+            $fontSize = 32;
+            $text = strtoupper($library->name);
+
+            // Calculate text box for center alignment
+            $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
+            $textWidth = $bbox[2] - $bbox[0];
+            $textX = (595 - $textWidth) / 2;
+            $textY = 55; // Centered in the top header area
+            imagettftext($baseImage, $fontSize, 0, $textX, $textY, $whiteColor, $fontPath, $text);
+
+        // Add Library ID Code at the bottom in primary color
+        // $codeText = "CODE: " . $library->code;
+        // $codeFontSize = 18;
+        // $bbox = imagettfbbox($codeFontSize, 0, $fontPath, $codeText);
+        // $codeWidth = $bbox[2] - $bbox[0];
+        // $codeX = (595 - $codeWidth) / 2;
+        // $codeY = 750; // White space below QR
+        // imagettftext($baseImage, $codeFontSize, 0, $codeX, $codeY, $primaryColor, $fontPath, $codeText);
+        }
+        else {
+            // Basic fallback without TTF
+            $text = strtoupper($library->name);
+            imagestring($baseImage, 5, (595 - (strlen($text) * 9)) / 2, 80, $text, $whiteColor);
+        }
+
+        // 5. Output image
+        return response()->stream(function () use ($baseImage) {
+            imagepng($baseImage);
+            imagedestroy($baseImage);
+        }, 200, ['Content-Type' => 'image/png']);
     }
 }
