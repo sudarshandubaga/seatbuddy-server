@@ -15,6 +15,11 @@
 </div>
 
 <div class="prose dark:prose-invert max-w-none space-y-10">
+    @if($content)
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm">
+            <div class="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{!! nl2br(e($content)) !!}</div>
+        </div>
+    @else
     <section>
         <h2 class="text-2xl font-bold flex items-center mb-4">
             <span class="mr-3 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-primary">01</span>
@@ -84,5 +89,6 @@
             </a>
         </div>
     </section>
+    @endif
 </div>
 @endsection

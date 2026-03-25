@@ -68,6 +68,9 @@ Route::group(['prefix' => 'library-app'], function () {
             Route::get('/sms-templates', [\App\Http\Controllers\Api\SmsTemplateController::class , 'index']);
             Route::post('/sms-templates', [\App\Http\Controllers\Api\SmsTemplateController::class , 'update']);
 
+            Route::get('/legal-pages', [\App\Http\Controllers\Api\LegalPageController::class , 'index']);
+            Route::post('/legal-pages', [\App\Http\Controllers\Api\LegalPageController::class , 'update']);
+
             Route::apiResources([
                 'slot-package' => SlotPackageController::class ,
                 'student' => StudentController::class ,

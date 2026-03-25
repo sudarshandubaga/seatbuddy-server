@@ -101,6 +101,15 @@ class LibraryController extends Controller
                 'is_paid' => true,
             ]);
 
+            // Welcome Email - Only if new user was created
+            if ($createNewUser) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\LibraryWelcomeMail($user, $validated['password'], $library));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send welcome email to library: ' . $e->getMessage());
+                }
+            }
+
             return response()->json($library->load('user'), 201);
         });
     }
@@ -125,6 +134,9 @@ class LibraryController extends Controller
             'logo' => 'nullable|image|max:2048',
             // 'no_of_tables' => 'nullable|integer',
             'plan_id' => 'nullable|exists:subscription_plans,id',
+            'terms_conditions' => 'nullable|string',
+            'privacy_policy' => 'nullable|string',
+            'disclaimer' => 'nullable|string',
         ]);
 
         if ($request->hasFile('logo')) {

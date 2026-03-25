@@ -15,6 +15,11 @@
 </div>
 
 <div class="space-y-12">
+    @if($content)
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm">
+            <div class="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{!! nl2br(e($content)) !!}</div>
+        </div>
+    @else
     <section>
         <h2 class="text-2xl font-bold text-secondary dark:text-white mb-6 flex items-center">
             <span class="mr-4 w-10 h-10 flex items-center justify-center rounded-2xl bg-primary text-white text-sm">1</span>
@@ -82,5 +87,6 @@
             Contact Support
         </a>
     </div>
+    @endif
 </div>
 @endsection

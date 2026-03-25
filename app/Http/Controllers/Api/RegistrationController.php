@@ -78,6 +78,13 @@ class RegistrationController extends Controller
                         'razorpay_order_id' => $order['id'],
                     ]);
 
+                    // Send Welcome Mail
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\LibraryWelcomeMail($user, $validated['password'], $library));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Failed to send welcome email to library: ' . $e->getMessage());
+                    }
+
                     return response()->json([
                         'status' => 'success',
                         'message' => 'Registration successful. Please complete payment.',
@@ -95,6 +102,13 @@ class RegistrationController extends Controller
                     'subscription_plan_id' => $plan->id,
                 ]);
                 $history->update(['is_paid' => true]);
+
+                // Send Welcome Mail
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\LibraryWelcomeMail($user, $validated['password'], $library));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send welcome email to library: ' . $e->getMessage());
+                }
 
                 return response()->json([
                     'status' => 'success',

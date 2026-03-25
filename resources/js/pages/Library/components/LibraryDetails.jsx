@@ -175,6 +175,14 @@ export default function LibraryDetails({ library, isOpen, onClose, users = [] })
                                     <p className="text-sm text-gray-500">{manager?.email || 'Authorized Library Manager'}</p>
                                 </div>
                             </div>
+                            {manager?.login_name && (
+                                <div className="mt-3 pt-3 border-t border-gray-100">
+                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Login User ID</p>
+                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 font-mono">
+                                        {manager.login_name}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex flex-col items-center justify-center py-6 bg-white rounded-xl border border-dashed border-gray-300 relative group">
