@@ -4,29 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\GlobalSetting;
 
 class LegalPageController extends Controller
 {
     /**
-     * Get legal pages content for the authenticated user's library.
+     * Get legal pages content.
      */
     public function index()
     {
-        $user = auth()->user()->load('library');
-
-        if (!$user->library) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Library not found'
-            ], 404);
-        }
-
         return response()->json([
             'status' => true,
             'data' => [
-                'terms_conditions' => $user->library->terms_conditions,
-                'privacy_policy' => $user->library->privacy_policy,
-                'disclaimer' => $user->library->disclaimer,
+                'terms_conditions' => GlobalSetting::where('key', 'terms_conditions')->first()?->value,
+                'privacy_policy' => GlobalSetting::where('key', 'privacy_policy')->first()?->value,
+                'disclaimer' => GlobalSetting::where('key', 'disclaimer')->first()?->value,
             ]
         ]);
     }
@@ -36,38 +28,27 @@ class LegalPageController extends Controller
      */
     public function support()
     {
-        $user = auth()->user()->load('library');
-
-        if (!$user->library) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Library not found'
-            ], 404);
-        }
-
         return response()->json([
             'status' => true,
             'data' => [
-                'support_phone' => $user->library->support_phone,
-                'support_email' => $user->library->support_email,
-                'support_whatsapp' => $user->library->support_whatsapp,
-                'faqs' => json_decode($user->library->faqs),
+                'support_phone' => GlobalSetting::where('key', 'support_phone')->first()?->value,
+                'support_email' => GlobalSetting::where('key', 'support_email')->first()?->value,
+                'support_whatsapp' => GlobalSetting::where('key', 'support_whatsapp')->first()?->value,
+                'faqs' => json_decode(GlobalSetting::where('key', 'faqs')->first()?->value ?? '[]'),
             ]
         ]);
     }
 
     /**
-     * Update legal pages content.
+     * Update global settings content.
      */
     public function update(Request $request)
     {
-        $user = auth()->user()->load('library');
-
-        if (!$user->library) {
+        if (auth()->user()->role !== 'admin') {
             return response()->json([
                 'status' => false,
-                'message' => 'Library not found'
-            ], 404);
+                'message' => 'Unauthorized'
+            ], 403);
         }
 
         $validated = $request->validate([
@@ -80,16 +61,16 @@ class LegalPageController extends Controller
             'faqs' => 'nullable|string', // Send as JSON string from client
         ]);
 
-        $user->library->update($validated);
+        foreach ($validated as $key => $value) {
+            GlobalSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
 
         return response()->json([
             'status' => true,
-            'message' => 'Legal pages updated successfully',
-            'data' => [
-                'terms_conditions' => $user->library->terms_conditions,
-                'privacy_policy' => $user->library->privacy_policy,
-                'disclaimer' => $user->library->disclaimer,
-            ]
+            'message' => 'Global settings updated successfully',
         ]);
     }
 }
