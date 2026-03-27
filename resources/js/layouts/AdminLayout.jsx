@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Library, CreditCard, LogOut, User, Bell, FileText } from 'lucide-react';
+import { LayoutDashboard, Library, CreditCard, LogOut, User, Bell, Settings } from 'lucide-react';
 
 export default function AdminLayout() {
     const location = useLocation();
