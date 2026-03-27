@@ -54,12 +54,12 @@ export default function AdminLayout() {
                         Notifications
                     </Link>
                     <Link
-                        to="/admin/legal-pages"
-                        className={`flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors ${location.pathname === '/admin/legal-pages' ? 'bg-blue-50 text-blue-600' : ''
+                        to="/admin/app-settings"
+                        className={`flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors ${location.pathname === '/admin/app-settings' ? 'bg-blue-50 text-blue-600' : ''
                             }`}
                     >
-                        <FileText className="w-5 h-5 mr-3" />
-                        Legal Pages
+                        <Settings className="w-5 h-5 mr-3" />
+                        App Settings
                     </Link>
                 </nav>
                 <div className="absolute bottom-0 w-64 p-4 border-t bg-white">

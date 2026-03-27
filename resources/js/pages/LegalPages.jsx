@@ -10,32 +10,52 @@ export default function LegalPages() {
         terms_conditions: '',
         privacy_policy: '',
         disclaimer: '',
+        support_phone: '',
+        support_email: '',
+        support_whatsapp: '',
+        faqs: [],
     });
+
+    const [faqString, setFaqString] = useState('');
 
     const tabs = [
         { key: 'terms_conditions', label: 'Terms & Conditions', icon: '📋' },
         { key: 'privacy_policy', label: 'Privacy Policy', icon: '🛡️' },
         { key: 'disclaimer', label: 'Disclaimer', icon: '⚠️' },
+        { key: 'support', label: 'Support Info', icon: '📞' },
+        { key: 'faqs', label: 'FAQs', icon: '❓' },
     ];
 
     useEffect(() => {
-        fetchLegalPages();
+        fetchData();
     }, []);
 
-    const fetchLegalPages = async () => {
+    const fetchData = async () => {
         try {
-            // Fetch all libraries, find the first one's legal pages
-            const res = await api.get('/libraries');
-            if (res.data && res.data.length > 0) {
-                const library = res.data[0];
-                setData({
-                    terms_conditions: library.terms_conditions || '',
-                    privacy_policy: library.privacy_policy || '',
-                    disclaimer: library.disclaimer || '',
-                });
-            }
+            setLoading(true);
+            const [legalRes, supportRes] = await Promise.all([
+                api.get('/library-app/legal-pages'),
+                api.get('/library-app/support')
+            ]);
+
+            const legalData = legalRes.data.data || {};
+            const supportData = supportRes.data.data || {};
+
+            setData({
+                terms_conditions: legalData.terms_conditions || '',
+                privacy_policy: legalData.privacy_policy || '',
+                disclaimer: legalData.disclaimer || '',
+                support_phone: supportData.support_phone || '',
+                support_email: supportData.support_email || '',
+                support_whatsapp: supportData.support_whatsapp || '',
+                faqs: supportData.faqs || [],
+            });
+
+            setFaqString(JSON.stringify(supportData.faqs || [], null, 2));
+
         } catch (err) {
-            setMessage({ type: 'error', text: 'Failed to load legal pages.' });
+            console.error(err);
+            setMessage({ type: 'error', text: 'Failed to load settings.' });
         } finally {
             setLoading(false);
         }
@@ -45,21 +65,31 @@ export default function LegalPages() {
         setSaving(true);
         setMessage({ type: '', text: '' });
         try {
-            const res = await api.get('/libraries');
-            if (res.data && res.data.length > 0) {
-                const library = res.data[0];
-                await api.put(`/libraries/${library.id}`, {
-                    terms_conditions: data.terms_conditions,
-                    privacy_policy: data.privacy_policy,
-                    disclaimer: data.disclaimer,
-                });
-                setMessage({ type: 'success', text: 'Legal pages updated successfully!' });
+            let finalFaqs = data.faqs;
+            if (activeTab === 'faqs') {
+                try {
+                    finalFaqs = JSON.parse(faqString);
+                } catch (e) {
+                    setMessage({ type: 'error', text: 'Invalid JSON format in FAQs.' });
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            await api.post('/library-app/legal-pages', {
+                ...data,
+                faqs: activeTab === 'faqs' ? faqString : JSON.stringify(data.faqs),
+            });
+
+            setMessage({ type: 'success', text: 'Settings updated successfully!' });
+            if (activeTab === 'faqs') {
+                setData(prev => ({ ...prev, faqs: JSON.parse(faqString) }));
             }
         } catch (err) {
             setMessage({ type: 'error', text: 'Failed to save. Please try again.' });
         } finally {
             setSaving(false);
-            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+            setTimeout(() => setMessage({ type: '', text: '' }), 5000);
         }
     };
 
@@ -75,9 +105,9 @@ export default function LegalPages() {
         <div className="max-w-5xl mx-auto">
             {/* Page Header */}
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Legal Pages</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Global App Settings</h1>
                 <p className="text-gray-500 mt-1">
-                    Manage your Terms & Conditions, Privacy Policy, and Disclaimer content. These will be displayed in the app.
+                    Manage Terms, Privacy, and Support details for the entire application.
                 </p>
             </div>
 
@@ -97,12 +127,12 @@ export default function LegalPages() {
 
             {/* Tabs */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="flex border-b border-gray-200">
+                <div className="flex border-b border-gray-200 overflow-x-auto">
                     {tabs.map((tab) => (
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 transition-all ${
+                            className={`flex-1 min-w-[120px] py-4 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-all ${
                                 activeTab === tab.key
                                     ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -116,28 +146,77 @@ export default function LegalPages() {
 
                 {/* Editor Area */}
                 <div className="p-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {tabs.find((t) => t.key === activeTab)?.label} Content
-                    </label>
-                    <p className="text-xs text-gray-400 mb-3">
-                        Write your content below. You can use plain text. This will be shown as-is in the mobile app.
-                    </p>
-                    <textarea
-                        className="w-full h-96 p-4 border border-gray-300 rounded-lg text-sm text-gray-800 leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all placeholder:text-gray-300"
-                        value={data[activeTab]}
-                        onChange={(e) =>
-                            setData((prev) => ({
-                                ...prev,
-                                [activeTab]: e.target.value,
-                            }))
-                        }
-                        placeholder={`Enter your ${tabs.find((t) => t.key === activeTab)?.label}...`}
-                    />
+                    {['terms_conditions', 'privacy_policy', 'disclaimer'].includes(activeTab) && (
+                        <>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                {tabs.find((t) => t.key === activeTab)?.label} Content
+                            </label>
+                            <textarea
+                                className="w-full h-96 p-4 border border-gray-300 rounded-lg text-sm text-gray-800 leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
+                                value={data[activeTab]}
+                                onChange={(e) =>
+                                    setData((prev) => ({
+                                        ...prev,
+                                        [activeTab]: e.target.value,
+                                    }))
+                                }
+                                placeholder={`Enter your ${tabs.find((t) => t.key === activeTab)?.label}...`}
+                            />
+                        </>
+                    )}
 
-                    {/* Character count */}
-                    <div className="flex justify-between items-center mt-3">
+                    {activeTab === 'support' && (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Support Phone</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={data.support_phone}
+                                    onChange={(e) => setData(prev => ({ ...prev, support_phone: e.target.value }))}
+                                    placeholder="+91 98765 43210"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Support Email</label>
+                                <input
+                                    type="email"
+                                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={data.support_email}
+                                    onChange={(e) => setData(prev => ({ ...prev, support_email: e.target.value }))}
+                                    placeholder="support@example.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Support WhatsApp (Phone number only)</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={data.support_whatsapp}
+                                    onChange={(e) => setData(prev => ({ ...prev, support_whatsapp: e.target.value }))}
+                                    placeholder="919876543210"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'faqs' && (
+                        <>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">FAQs (JSON format)</label>
+                            <p className="text-xs text-gray-400 mb-2">Format: {'[{"question": "...", "answer": "..."}]'}</p>
+                            <textarea
+                                className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm text-gray-800 leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
+                                value={faqString}
+                                onChange={(e) => setFaqString(e.target.value)}
+                                placeholder='[{"question": "How to...", "answer": "..."}]'
+                            />
+                        </>
+                    )}
+
+                    {/* Footer buttons */}
+                    <div className="flex justify-between items-center mt-6">
                         <p className="text-xs text-gray-400">
-                            {data[activeTab]?.length || 0} characters
+                             Manage your global app configuration here.
                         </p>
                         <button
                             onClick={handleSave}
@@ -148,31 +227,7 @@ export default function LegalPages() {
                                     : 'bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow'
                             }`}
                         >
-                            {saving ? (
-                                <span className="flex items-center gap-2">
-                                    <svg
-                                        className="animate-spin h-4 w-4"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        />
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                                        />
-                                    </svg>
-                                    Saving...
-                                </span>
-                            ) : (
-                                'Save Changes'
-                            )}
+                            {saving ? 'Saving...' : 'Save All Changes'}
                         </button>
                     </div>
                 </div>

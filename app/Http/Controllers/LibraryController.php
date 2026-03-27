@@ -134,9 +134,6 @@ class LibraryController extends Controller
             'logo' => 'nullable|image|max:2048',
             // 'no_of_tables' => 'nullable|integer',
             'plan_id' => 'nullable|exists:subscription_plans,id',
-            'terms_conditions' => 'nullable|string',
-            'privacy_policy' => 'nullable|string',
-            'disclaimer' => 'nullable|string',
         ]);
 
         if ($request->hasFile('logo')) {

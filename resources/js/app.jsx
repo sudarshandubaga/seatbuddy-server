@@ -22,7 +22,7 @@ function App() {
                     <Route path="subscriptions" element={<SubscriptionPlans />} />
                     <Route path="users" element={<Users />} />
                     <Route path="notifications" element={<SendNotifications />} />
-                    <Route path="legal-pages" element={<LegalPages />} />
+                    <Route path="app-settings" element={<LegalPages />} />
                 </Route>
             </Routes>
         </BrowserRouter>
