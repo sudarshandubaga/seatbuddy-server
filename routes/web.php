@@ -36,6 +36,10 @@ Route::get('/disclaimer/{code?}', function ($code = null) {
     return view('disclaimer', compact('content'));
 })->name('disclaimer');
 
+Route::get('/account-deletion', function () {
+    return view('account-deletion');
+})->name('account-deletion');
+
 Route::get('/admin/login', function () {
     return view('app');
 })->name('login');

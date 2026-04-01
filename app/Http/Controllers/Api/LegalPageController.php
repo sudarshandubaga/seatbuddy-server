@@ -19,6 +19,7 @@ class LegalPageController extends Controller
                 'terms_conditions' => GlobalSetting::where('key', 'terms_conditions')->first()?->value,
                 'privacy_policy' => GlobalSetting::where('key', 'privacy_policy')->first()?->value,
                 'disclaimer' => GlobalSetting::where('key', 'disclaimer')->first()?->value,
+                'account_deletion_url' => url('/account-deletion'),
             ]
         ]);
     }
