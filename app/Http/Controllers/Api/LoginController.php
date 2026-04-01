@@ -70,7 +70,10 @@ class LoginController extends Controller
             'status' => true,
             'message' => 'Login successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user,
+            'config' => [
+                'razorpay_key' => config('services.razorpay.key')
+            ]
         ]);
     }
 

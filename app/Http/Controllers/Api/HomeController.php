@@ -114,18 +114,24 @@ class HomeController extends Controller
             ]);
         }
 
+        $commonData = [
+            'razorpay_key' => config('services.razorpay.key'),
+        ];
+
         if ($user->role === 'library') {
             return response()->json([
                 'status' => true,
                 'message' => 'Library data',
-                'data' => $user->load("library.plan")
+                'data' => $user->load("library.plan"),
+                'config' => $commonData
             ]);
         }
 
         return response()->json([
             'status' => true,
             'message' => 'User data',
-            'data' => $user->load(["student.slotPackage", "library.plan"])
+            'data' => $user->load(["student.slotPackage", "library.plan"]),
+            'config' => $commonData
         ]);
     }
 }

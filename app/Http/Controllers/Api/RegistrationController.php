@@ -67,7 +67,7 @@ class RegistrationController extends Controller
 
                 // 5. Create Razorpay Order if not a free trial (or if trade_amount > 0)
                 if ($plan->trade_amount > 0) {
-                    $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+                    $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
                     $order = $api->order->create([
                         'receipt' => $history->id,
                         'amount' => $plan->trade_amount * 100, // in paise
@@ -90,7 +90,7 @@ class RegistrationController extends Controller
                         'message' => 'Registration successful. Please complete payment.',
                         'order_id' => $order['id'],
                         'amount' => $plan->trade_amount * 100,
-                        'key' => env('RAZORPAY_KEY_ID'),
+                        'key' => config('services.razorpay.key'),
                         'user' => $user,
                         'history_id' => $history->id,
                     ]);
@@ -134,7 +134,7 @@ class RegistrationController extends Controller
         ]);
 
         try {
-            $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+            $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
 
             $attributes = [
                 'razorpay_order_id' => $validated['razorpay_order_id'],

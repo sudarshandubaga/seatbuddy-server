@@ -38,7 +38,7 @@ class SubscriptionController extends Controller
                 ]);
 
                 // 2. Generate Razorpay Order
-                $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+                $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
                 $order = $api->order->create([
                     'receipt' => $history->id,
                     'amount' => $plan->trade_amount * 100, // Amount in paise
@@ -53,7 +53,7 @@ class SubscriptionController extends Controller
                     'status' => 'success',
                     'order_id' => $order['id'],
                     'amount' => $plan->trade_amount * 100,
-                    'key' => env('RAZORPAY_KEY_ID'),
+                    'key' => config('services.razorpay.key'),
                     'history_id' => $history->id,
                 ]);
             });
@@ -78,7 +78,7 @@ class SubscriptionController extends Controller
         ]);
 
         try {
-            $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+            $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
             
             $attributes = [
                 'razorpay_order_id' => $validated['razorpay_order_id'],

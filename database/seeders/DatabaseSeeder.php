@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         \App\Models\User::create([
             'name' => 'Super Admin',
             'login_name' => 'admin',
-            'email' => 'admin@library.com',
+            'email' => 'support@digihawkapps.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'admin',
             'phone' => '1234567890',
