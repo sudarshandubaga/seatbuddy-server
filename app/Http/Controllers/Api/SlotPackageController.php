@@ -34,14 +34,22 @@ class SlotPackageController extends Controller
     {
         $authUser = $request->user()->load('library');
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'end_time' => 'required|date_format:H:i',
             'price' => 'required|numeric|min:0',
             'icon' => 'nullable|string',
-            'description' => 'nullable|string'
-        ]);
+            'description' => 'nullable|string',
+            'is_full_day' => 'nullable|boolean',
+            'is_overnight' => 'nullable|boolean',
+        ];
+
+        if (!$request->is_full_day && !$request->is_overnight) {
+            $rules['end_time'] .= '|after:start_time';
+        }
+
+        $request->validate($rules);
 
         $package = SlotPackage::create([
             'name' => $request->name,
@@ -50,6 +58,8 @@ class SlotPackageController extends Controller
             'price' => $request->price,
             'icon' => $request->icon,
             'description' => $request->description,
+            'is_full_day' => $request->is_full_day ?? false,
+            'is_overnight' => $request->is_overnight ?? false,
             'library_id' => $authUser->library->id
         ]);
 
@@ -86,14 +96,22 @@ class SlotPackageController extends Controller
             ->where('library_id', $authUser->library->id)
             ->firstOrFail();
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'end_time' => 'required|date_format:H:i',
             'price' => 'required|numeric|min:0',
             'icon' => 'nullable|string',
-            'description' => 'nullable|string'
-        ]);
+            'description' => 'nullable|string',
+            'is_full_day' => 'nullable|boolean',
+            'is_overnight' => 'nullable|boolean',
+        ];
+
+        if (!$request->is_full_day && !$request->is_overnight) {
+            $rules['end_time'] .= '|after:start_time';
+        }
+
+        $request->validate($rules);
 
         $package->update($request->only([
             'name',
@@ -101,7 +119,9 @@ class SlotPackageController extends Controller
             'end_time',
             'price',
             'icon',
-            'description'
+            'description',
+            'is_full_day',
+            'is_overnight'
         ]));
 
         return response()->json([
