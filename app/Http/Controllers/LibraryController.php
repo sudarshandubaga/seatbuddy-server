@@ -36,6 +36,16 @@ class LibraryController extends Controller
             $query->where('city', 'like', "%{$request->city}%");
         }
 
+        if ($request->has('status') && !empty($request->status)) {
+            $status = $request->status;
+            $today = \Carbon\Carbon::today()->toDateString();
+            if ($status === 'active') {
+                $query->whereDate('valid_upto', '>=', $today);
+            } elseif ($status === 'expired') {
+                $query->whereDate('valid_upto', '<', $today);
+            }
+        }
+
         return response()->json($query->latest()->paginate($request->get('per_page', 10)));
     }
 

@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import LibraryStore from './pages/Library/index';
 import SubscriptionPlans from './pages/SubscriptionPlans';
+import PaymentHistory from './pages/PaymentHistory';
 import Users from './pages/Users';
 import SendNotifications from './pages/SendNotifications';
 import LegalPages from './pages/LegalPages';
@@ -20,6 +21,7 @@ function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="libraries" element={<LibraryStore />} />
                     <Route path="subscriptions" element={<SubscriptionPlans />} />
+                    <Route path="payment-history" element={<PaymentHistory />} />
                     <Route path="users" element={<Users />} />
                     <Route path="notifications" element={<SendNotifications />} />
                     <Route path="app-settings" element={<LegalPages />} />

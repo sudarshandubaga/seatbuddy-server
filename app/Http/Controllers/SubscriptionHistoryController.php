@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 
 class SubscriptionHistoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return SubscriptionHistory::with(['library', 'plan'])->latest()->get();
+        $query = SubscriptionHistory::with(['library', 'plan']);
+
+        if ($request->has('library_id') && !empty($request->library_id)) {
+            $query->where('library_id', $request->library_id);
+        }
+
+        return response()->json($query->latest()->paginate($request->get('per_page', 10)));
     }
 
     public function store(Request $request)

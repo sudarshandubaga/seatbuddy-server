@@ -52,6 +52,14 @@ export default function AdminLayout() {
                         Subscriptions
                     </Link>
                     <Link
+                        to="/admin/payment-history"
+                        className={`flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors ${location.pathname === '/admin/payment-history' ? 'bg-blue-50 text-blue-600' : ''
+                            }`}
+                    >
+                        <CreditCard className="w-5 h-5 mr-3" />
+                        Payment History
+                    </Link>
+                    <Link
                         to="/admin/users"
                         className={`flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors ${location.pathname === '/admin/users' ? 'bg-blue-50 text-blue-600' : ''
                             }`}

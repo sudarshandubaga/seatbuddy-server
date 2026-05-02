@@ -57,8 +57,8 @@ export default function LibraryStore() {
 
     const fetchUsers = async () => {
         try {
-            const response = await api.get('/users?role=library');
-            setUsers(response.data);
+            const response = await api.get('/users?role=library&per_page=1000');
+            setUsers(response.data.data || []);
         } catch (error) {
             console.error('Failed to fetch users', error);
         }
@@ -101,9 +101,17 @@ export default function LibraryStore() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                     <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder="Name, Address, Code, Phone, Email" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
-                <div className="w-64">
+                <div className="w-48">
                     <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                     <input type="text" name="city" value={filters.city} onChange={handleFilterChange} placeholder="Filter by city..." className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="w-40">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select name="status" value={filters.status || ''} onChange={handleFilterChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                    </select>
                 </div>
                 <button type="submit" className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
                     Filter

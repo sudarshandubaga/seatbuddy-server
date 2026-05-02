@@ -61,17 +61,18 @@ export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onVi
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Contact</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Code</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Manager</th>
+                            <th className="px-6 py-4 text-sm font-medium text-gray-500">Expiry</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Loading...</td>
+                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">Loading...</td>
                             </tr>
                         ) : libraries.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No libraries found</td>
+                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No libraries found</td>
                             </tr>
                         ) : (
                             libraries.map((library) => (
@@ -93,6 +94,30 @@ export default function ViewLibrary({ libraries, loading, onEdit, onDelete, onVi
                                     </td>
                                     <td className="px-6 py-4 text-gray-600">
                                         {library.user?.name || 'No Manager'}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {(() => {
+                                            const today = new Date();
+                                            today.setHours(0,0,0,0);
+                                            const expiryDate = new Date(library.valid_upto);
+                                            const timeDiff = expiryDate.getTime() - today.getTime();
+                                            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                                            const isExpired = daysDiff < 0;
+
+                                            return (
+                                                <div className="flex flex-col">
+                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold inline-block w-max ${isExpired ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                        {isExpired ? 'EXPIRED' : 'ACTIVE'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-600 mt-1 font-medium">
+                                                        {expiryDate.toLocaleDateString()}
+                                                    </span>
+                                                    <span className={`text-[10px] font-bold ${isExpired ? 'text-red-500' : 'text-blue-500'}`}>
+                                                        {isExpired ? `${Math.abs(daysDiff)} days ago` : `${daysDiff} days left`}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex space-x-3">
