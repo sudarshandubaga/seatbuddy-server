@@ -10,19 +10,42 @@ export default function Users() {
     const [formData, setFormData] = useState({
         name: '', email: '', password: '', role: 'user'
     });
+    const [filters, setFilters] = useState({ search: '', role: '', library_id: '' });
+    const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
 
     useEffect(() => {
-        fetchUsers();
+        fetchUsers(1);
     }, []);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
+        setLoading(true);
         try {
-            const response = await api.get('/users');
-            setUsers(response.data);
+            const response = await api.get('/users', { params: { page, ...filters } });
+            setUsers(response.data.data);
+            setPagination({
+                current_page: response.data.current_page,
+                last_page: response.data.last_page,
+                total: response.data.total
+            });
         } catch (error) {
             console.error('Failed to fetch users', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFilterChange = (e) => {
+        setFilters({ ...filters, [e.target.name]: e.target.value });
+    };
+
+    const handleFilterSubmit = (e) => {
+        e.preventDefault();
+        fetchUsers(1);
+    };
+
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= pagination.last_page) {
+            fetchUsers(page);
         }
     };
 
@@ -42,7 +65,7 @@ export default function Users() {
             } else {
                 await api.post('/users', data);
             }
-            fetchUsers();
+            fetchUsers(pagination.current_page);
             setShowModal(false);
             resetForm();
         } catch (error) {
@@ -66,7 +89,7 @@ export default function Users() {
         if (!confirm('Are you sure you want to delete this user?')) return;
         try {
             await api.delete(`/users/${id}`);
-            fetchUsers();
+            fetchUsers(pagination.current_page);
         } catch (error) {
             console.error('Delete failed', error);
         }
@@ -81,7 +104,7 @@ export default function Users() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Users</h1>
                 <button
                     onClick={() => { resetForm(); setShowModal(true); }}
@@ -92,10 +115,30 @@ export default function Users() {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <form onSubmit={handleFilterSubmit} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <input type="text" name="search" value={filters.search} onChange={handleFilterChange} placeholder="Name, Email, Phone, User ID" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="w-48">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select name="role" value={filters.role} onChange={handleFilterChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All Roles</option>
+                        <option value="user">User</option>
+                        <option value="library">Library Manager</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
+                    Filter
+                </button>
+            </form>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
+                            <th className="px-6 py-4 text-sm font-medium text-gray-500">User ID</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Name</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Email</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Role</th>
@@ -106,15 +149,16 @@ export default function Users() {
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">Loading...</td>
+                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Loading...</td>
                             </tr>
                         ) : users.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">No users found</td>
+                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No users found</td>
                             </tr>
                         ) : (
                             users.map((user) => (
                                 <tr key={user.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 text-gray-600 font-mono text-sm">{user.login_name || '-'}</td>
                                     <td className="px-6 py-4 font-medium text-gray-900 flex items-center">
                                         <div className="bg-gray-100 p-2 rounded-full mr-3">
                                             <User className="w-4 h-4 text-gray-500" />
@@ -149,6 +193,16 @@ export default function Users() {
                     </tbody>
                 </table>
             </div>
+
+            {pagination.total > 0 && (
+                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8">
+                    <span className="text-sm text-gray-600">Showing page {pagination.current_page} of {pagination.last_page} ({pagination.total} total)</span>
+                    <div className="flex space-x-2">
+                        <button disabled={pagination.current_page <= 1} onClick={() => handlePageChange(pagination.current_page - 1)} className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50">Previous</button>
+                        <button disabled={pagination.current_page >= pagination.last_page} onClick={() => handlePageChange(pagination.current_page + 1)} className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50">Next</button>
+                    </div>
+                </div>
+            )}
 
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">

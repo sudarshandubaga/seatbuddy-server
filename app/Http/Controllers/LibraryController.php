@@ -14,9 +14,29 @@ use chillerlan\QRCode\Output\QRGdImagePNG;
 
 class LibraryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Library::with('user')->latest()->get();
+        $query = Library::with('user');
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->has('city') && !empty($request->city)) {
+            $query->where('city', 'like', "%{$request->city}%");
+        }
+
+        return response()->json($query->latest()->paginate($request->get('per_page', 10)));
     }
 
     public function store(Request $request)
@@ -26,6 +46,7 @@ class LibraryController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'address' => 'required|string',
+            'city' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'phone' => 'required|string',
@@ -81,6 +102,7 @@ class LibraryController extends Controller
             $library = \App\Models\Library::create([
                 'name' => $validated['name'],
                 'address' => $validated['address'],
+                'city' => $validated['city'] ?? null,
                 'latitude' => $validated['latitude'] ?? 0,
                 'longitude' => $validated['longitude'] ?? 0,
                 'phone' => $validated['phone'],
@@ -124,6 +146,7 @@ class LibraryController extends Controller
         $validated = $request->validate([
             'name' => 'string|max:255',
             'address' => 'string',
+            'city' => 'nullable|string',
             'latitude' => 'numeric',
             'longitude' => 'numeric',
             'phone' => 'nullable|string',

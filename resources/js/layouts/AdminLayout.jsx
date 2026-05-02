@@ -1,9 +1,23 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Library, CreditCard, LogOut, User, Bell, Settings } from 'lucide-react';
 
 export default function AdminLayout() {
     const location = useLocation();
+    const navigate = useNavigate();
+
+    React.useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/admin/login');
+        }
+    }, [navigate]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/admin/login');
+    };
 
     return (
         <div className="flex h-screen bg-gray-100">
@@ -63,7 +77,7 @@ export default function AdminLayout() {
                     </Link>
                 </nav>
                 <div className="absolute bottom-0 w-64 p-4 border-t bg-white">
-                    <button className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <button onClick={handleLogout} className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
                         <LogOut className="w-5 h-5 mr-3" />
                         Logout
                     </button>

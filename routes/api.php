@@ -22,6 +22,7 @@ Route::get('libraries/{library}/qr-code-label', [LibraryController::class , 'gen
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class , 'logout']);
     Route::get('/user', [AuthController::class , 'user']);
+    Route::get('/admin/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
     Route::apiResource('users', \App\Http\Controllers\UserController::class);
     Route::post('/admin/notifications', [\App\Http\Controllers\AdminNotificationController::class , 'store']);
 
