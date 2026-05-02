@@ -5,6 +5,7 @@ import { Plus, Edit, Trash, User } from 'lucide-react';
 export default function Users() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [libraries, setLibraries] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [formData, setFormData] = useState({
@@ -15,7 +16,17 @@ export default function Users() {
 
     useEffect(() => {
         fetchUsers(1);
+        fetchLibraries();
     }, []);
+
+    const fetchLibraries = async () => {
+        try {
+            const response = await api.get('/libraries?per_page=1000');
+            setLibraries(response.data.data || response.data);
+        } catch (error) {
+            console.error('Failed to fetch libraries', error);
+        }
+    };
 
     const fetchUsers = async (page = 1) => {
         setLoading(true);
@@ -102,6 +113,12 @@ export default function Users() {
         });
     };
 
+    const getUserLibraryName = (user) => {
+        if (user.library) return user.library.name;
+        if (user.student && user.student.library) return user.student.library.name;
+        return '-';
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -129,6 +146,15 @@ export default function Users() {
                         <option value="admin">Admin</option>
                     </select>
                 </div>
+                <div className="w-64">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Library</label>
+                    <select name="library_id" value={filters.library_id} onChange={handleFilterChange} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All Libraries</option>
+                        {libraries.map(lib => (
+                            <option key={lib.id} value={lib.id}>{lib.name} ({lib.code})</option>
+                        ))}
+                    </select>
+                </div>
                 <button type="submit" className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
                     Filter
                 </button>
@@ -140,6 +166,7 @@ export default function Users() {
                         <tr>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">User ID</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Name</th>
+                            <th className="px-6 py-4 text-sm font-medium text-gray-500">Library</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Email</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Role</th>
                             <th className="px-6 py-4 text-sm font-medium text-gray-500">Created At</th>
@@ -149,11 +176,11 @@ export default function Users() {
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">Loading...</td>
+                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">Loading...</td>
                             </tr>
                         ) : users.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No users found</td>
+                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No users found</td>
                             </tr>
                         ) : (
                             users.map((user) => (
@@ -164,6 +191,9 @@ export default function Users() {
                                             <User className="w-4 h-4 text-gray-500" />
                                         </div>
                                         {user.name}
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-600">
+                                        {getUserLibraryName(user)}
                                     </td>
                                     <td className="px-6 py-4 text-gray-600">{user.email}</td>
                                     <td className="px-6 py-4">
