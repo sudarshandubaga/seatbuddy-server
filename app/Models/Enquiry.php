@@ -19,6 +19,7 @@ class Enquiry extends Model
         'slot_package_id',
         'message',
         'address',
+        'status',
     ];
 
     public function slotPackage()

@@ -37,6 +37,7 @@ class EnquiryController extends Controller
             'slot_package_id' => 'nullable|uuid|exists:slot_packages,id',
             'message' => 'nullable|string',
             'address' => 'nullable|string',
+            'status' => 'nullable|string',
         ]);
 
         $enquiry = Enquiry::create([
@@ -77,6 +78,7 @@ class EnquiryController extends Controller
             'slot_package_id' => 'nullable|uuid|exists:slot_packages,id',
             'message' => 'nullable|string',
             'address' => 'nullable|string',
+            'status' => 'nullable|string',
         ]);
 
         $enquiry->update($validated);
