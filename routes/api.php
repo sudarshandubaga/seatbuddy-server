@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\SlotPackageController;
 use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\ConcessionController;
 use App\Http\Controllers\FeesCronController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,7 @@ Route::group(['prefix' => 'library-app'], function () {
             Route::get('/attendance/history', [AttendanceController::class , 'history']);
             Route::post('/enquiry/bulk-destroy', [EnquiryController::class , 'bulkDestroy']);
             Route::post('/seat/unallocate', [SeatController::class , 'unallocate']);
+            Route::post('/concession/{id}/allocate', [ConcessionController::class, 'allocate']);
 
             // Profile Routes
             Route::post('/profile/update', [\App\Http\Controllers\Api\ProfileController::class , 'update']);
@@ -81,6 +83,7 @@ Route::group(['prefix' => 'library-app'], function () {
                 'fee' => FeeController::class ,
                 'expense' => \App\Http\Controllers\Api\ExpenseController::class ,
                 'notification' => \App\Http\Controllers\Api\NotificationController::class ,
+                'concession' => ConcessionController::class,
             ]);
         }
         );

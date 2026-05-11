@@ -12,10 +12,11 @@ class FeesCronController extends Controller
     public function store()
     {
         // run daily to insert fees
-        $students = Student::with(['slotPackage', 'library.user', 'user'])
+        $students = Student::with(['slotPackage', 'library.user', 'user', 'concession'])
             ->whereNotNull('seat_no')
             ->where('day_of_billing', Carbon::now()->day)
             ->get();
+            
         $count = 0;
         foreach ($students as $student) {
             if ($student->slotPackage) {
@@ -25,9 +26,22 @@ class FeesCronController extends Controller
                     ->exists();
 
                 if (!$exists) {
+                    $originalPrice = $student->slotPackage->price;
+                    $finalPrice = $originalPrice;
+
+                    // Apply Concession if exists
+                    if ($student->concession) {
+                        if ($student->concession->type === 'percentage') {
+                            $discount = ($originalPrice * $student->concession->value) / 100;
+                            $finalPrice = max(0, $originalPrice - $discount);
+                        } elseif ($student->concession->type === 'fixed') {
+                            $finalPrice = max(0, $originalPrice - $student->concession->value);
+                        }
+                    }
+
                     $fees = new Fees();
                     $fees->student_id = $student->id;
-                    $fees->amount = $student->slotPackage->price;
+                    $fees->amount = $finalPrice;
                     $fees->date = Carbon::now()->toDateString();
                     $fees->save();
 
@@ -35,7 +49,7 @@ class FeesCronController extends Controller
                     \App\Models\Notification::create([
                         'user_id' => $student->user_id,
                         'title' => 'Monthly Fee Generated',
-                        'description' => 'Your subscription bill for ' . Carbon::now()->format('F Y') . ' of ₹' . number_format($student->slotPackage->price, 2) . ' is now available. Please clear it by this week.',
+                        'description' => 'Your subscription bill for ' . Carbon::now()->format('F Y') . ' of ₹' . number_format($finalPrice, 2) . ' is now available. Please clear it by this week.',
                         'purpose' => 'fees'
                     ]);
 
@@ -44,7 +58,7 @@ class FeesCronController extends Controller
                         \App\Models\Notification::create([
                             'user_id' => $student->library->user_id,
                             'title' => 'Fee Generated: ' . $student->user->name,
-                            'description' => 'A monthly fee of ₹' . number_format($student->slotPackage->price, 2) . ' has been generated for ' . $student->user->name . ' (Seat: ' . ($student->seat_no ?? 'N/A') . ').',
+                            'description' => 'A monthly fee of ₹' . number_format($finalPrice, 2) . ' has been generated for ' . $student->user->name . ' (Seat: ' . ($student->seat_no ?? 'N/A') . ').',
                             'purpose' => 'fees'
                         ]);
                     }

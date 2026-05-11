@@ -13,6 +13,7 @@ class Student extends Model
         'library_id',
         'father_name',
         'slot_package_id',
+        'concession_id',
         'notes',
         'seat_no',
         'join_date',
@@ -27,6 +28,11 @@ class Student extends Model
     public function slotPackage()
     {
         return $this->belongsTo(SlotPackage::class);
+    }
+
+    public function concession()
+    {
+        return $this->belongsTo(Concession::class);
     }
 
     public function library()
