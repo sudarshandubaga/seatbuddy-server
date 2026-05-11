@@ -43,6 +43,7 @@ class SlotPackageController extends Controller
             'description' => 'nullable|string',
             'is_full_day' => 'nullable|boolean',
             'is_overnight' => 'nullable|boolean',
+            'billing_cycle' => 'nullable|in:daily,weekly,fortnightly,monthly,quarterly,semi_annually,annually',
         ];
 
         if (!$request->is_full_day && !$request->is_overnight) {
@@ -60,6 +61,7 @@ class SlotPackageController extends Controller
             'description' => $request->description,
             'is_full_day' => $request->is_full_day ?? false,
             'is_overnight' => $request->is_overnight ?? false,
+            'billing_cycle' => $request->billing_cycle ?? 'monthly',
             'library_id' => $authUser->library->id
         ]);
 
@@ -105,6 +107,7 @@ class SlotPackageController extends Controller
             'description' => 'nullable|string',
             'is_full_day' => 'nullable|boolean',
             'is_overnight' => 'nullable|boolean',
+            'billing_cycle' => 'nullable|in:daily,weekly,fortnightly,monthly,quarterly,semi_annually,annually',
         ];
 
         if (!$request->is_full_day && !$request->is_overnight) {
@@ -121,7 +124,8 @@ class SlotPackageController extends Controller
             'icon',
             'description',
             'is_full_day',
-            'is_overnight'
+            'is_overnight',
+            'billing_cycle'
         ]));
 
         return response()->json([

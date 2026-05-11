@@ -110,11 +110,13 @@ class FeeController extends Controller
         $fee = Fees::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:paid,due'
+            'status' => 'required|in:paid,due',
+            'payment_mode' => 'nullable|string'
         ]);
 
         $fee->update([
-            'status' => $request->status
+            'status' => $request->status,
+            'payment_mode' => $request->payment_mode ?? ($request->status === 'paid' ? 'Cash' : null)
         ]);
 
         return response()->json([

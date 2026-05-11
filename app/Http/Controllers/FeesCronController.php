@@ -11,11 +11,39 @@ class FeesCronController extends Controller
 {
     public function store()
     {
+        $today = Carbon::now()->startOfDay();
+        
         // run daily to insert fees
-        $students = Student::with(['slotPackage', 'library.user', 'user', 'concession'])
+        $allStudents = Student::with(['slotPackage', 'library.user', 'user', 'concession'])
             ->whereNotNull('seat_no')
-            ->where('day_of_billing', Carbon::now()->day)
             ->get();
+
+        $students = $allStudents->filter(function($student) use ($today) {
+            if (!$student->slotPackage) return false;
+            
+            $cycle = $student->slotPackage->billing_cycle;
+            $joinDate = $student->join_date ? Carbon::parse($student->join_date)->startOfDay() : $today;
+            $dayOfBilling = (int) ($student->day_of_billing ?? $joinDate->day);
+
+            switch ($cycle) {
+                case 'daily':
+                    return true;
+                case 'weekly':
+                    return $today->diffInDays($joinDate) % 7 === 0;
+                case 'fortnightly':
+                    return $today->diffInDays($joinDate) % 15 === 0;
+                case 'monthly':
+                    return $today->day === $dayOfBilling;
+                case 'quarterly':
+                    return $today->day === $dayOfBilling && ($today->diffInMonths($joinDate->copy()->day(1)) % 3 === 0);
+                case 'semi_annually':
+                    return $today->day === $dayOfBilling && ($today->diffInMonths($joinDate->copy()->day(1)) % 6 === 0);
+                case 'annually':
+                    return $today->day === $dayOfBilling && ($today->diffInMonths($joinDate->copy()->day(1)) % 12 === 0);
+                default:
+                    return $today->day === $dayOfBilling;
+            }
+        });
             
         $count = 0;
         foreach ($students as $student) {
@@ -48,8 +76,8 @@ class FeesCronController extends Controller
                     // Create Notification Entry for Student
                     \App\Models\Notification::create([
                         'user_id' => $student->user_id,
-                        'title' => 'Monthly Fee Generated',
-                        'description' => 'Your subscription bill for ' . Carbon::now()->format('F Y') . ' of ₹' . number_format($finalPrice, 2) . ' is now available. Please clear it by this week.',
+                        'title' => 'Subscription Fee Generated',
+                        'description' => 'Your subscription bill of ₹' . number_format($finalPrice, 2) . ' is now available. Please clear it by this week.',
                         'purpose' => 'fees'
                     ]);
 
@@ -58,7 +86,7 @@ class FeesCronController extends Controller
                         \App\Models\Notification::create([
                             'user_id' => $student->library->user_id,
                             'title' => 'Fee Generated: ' . $student->user->name,
-                            'description' => 'A monthly fee of ₹' . number_format($finalPrice, 2) . ' has been generated for ' . $student->user->name . ' (Seat: ' . ($student->seat_no ?? 'N/A') . ').',
+                            'description' => 'A subscription fee of ₹' . number_format($finalPrice, 2) . ' has been generated for ' . $student->user->name . ' (Seat: ' . ($student->seat_no ?? 'N/A') . ').',
                             'purpose' => 'fees'
                         ]);
                     }
