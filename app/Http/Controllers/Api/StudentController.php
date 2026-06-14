@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -122,6 +123,52 @@ class StudentController extends Controller
             'gender' => $request->gender,
         ]);
 
+        // Validate seat allocation conflicts with full-day slot packages
+        if ($request->seat_no && $request->slot_package_id) {
+            $slotPackage = \App\Models\SlotPackage::find($request->slot_package_id);
+            if ($slotPackage && $slotPackage->is_full_day) {
+                // Full-day slot: ensure no other non-null slot packages are on the same seat
+                $conflictingStudent = Student::where('seat_no', $request->seat_no)
+                    ->where('library_id', $authUser->library->id)
+                    ->whereNotNull('slot_package_id')
+                    ->first();
+                if ($conflictingStudent) {
+                    return response()->json([
+                        'message' => 'Cannot allocate full-day slot. The seat already has a student with a reserved slot.',
+                        'errors' => ['seat_no' => ['Seat already occupied by another slot allocation.']]
+                    ], 422);
+                }
+            } else {
+                // Non-full-day slot: ensure no full-day slot on the same seat
+                $conflictingStudent = Student::where('seat_no', $request->seat_no)
+                    ->where('library_id', $authUser->library->id)
+                    ->whereHas('slotPackage', function ($q) {
+                        $q->where('is_full_day', true);
+                    })
+                    ->first();
+                if ($conflictingStudent) {
+                    return response()->json([
+                        'message' => 'Cannot allocate this slot. The seat already has a full-day slot allocated.',
+                        'errors' => ['seat_no' => ['Seat already occupied by a full-day slot allocation.']]
+                    ], 422);
+                }
+            }
+        } elseif ($request->seat_no && !$request->slot_package_id) {
+            // Unreserved (null slot_package_id): check if seat has a full-day slot
+            $conflictingStudent = Student::where('seat_no', $request->seat_no)
+                ->where('library_id', $authUser->library->id)
+                ->whereHas('slotPackage', function ($q) {
+                    $q->where('is_full_day', true);
+                })
+                ->first();
+            if ($conflictingStudent) {
+                return response()->json([
+                    'message' => 'Cannot allocate unreserved slot. The seat already has a full-day slot allocated.',
+                    'errors' => ['seat_no' => ['Seat already occupied by a full-day slot allocation.']]
+                ], 422);
+            }
+        }
+
         $student = Student::create([
             'id' => Str::uuid(),
             'user_id' => $user->id,
@@ -173,6 +220,55 @@ class StudentController extends Controller
             'image' => 'nullable',
             'gender' => 'nullable|in:male,female,other',
         ]);
+
+        // Validate seat allocation conflicts with full-day slot packages on update
+        if ($request->seat_no && $request->slot_package_id) {
+            $slotPackage = \App\Models\SlotPackage::find($request->slot_package_id);
+            if ($slotPackage && $slotPackage->is_full_day) {
+                // Full-day slot: ensure no other non-null slot packages are on the same seat (excluding current student)
+                $conflictingStudent = Student::where('seat_no', $request->seat_no)
+                    ->where('library_id', $student->library_id)
+                    ->where('id', '!=', $student->id)
+                    ->whereNotNull('slot_package_id')
+                    ->first();
+                if ($conflictingStudent) {
+                    return response()->json([
+                        'message' => 'Cannot allocate full-day slot. The seat already has a student with a reserved slot.',
+                        'errors' => ['seat_no' => ['Seat already occupied by another slot allocation.']]
+                    ], 422);
+                }
+            } else {
+                // Non-full-day slot: ensure no full-day slot on the same seat (excluding current student)
+                $conflictingStudent = Student::where('seat_no', $request->seat_no)
+                    ->where('library_id', $student->library_id)
+                    ->where('id', '!=', $student->id)
+                    ->whereHas('slotPackage', function ($q) {
+                        $q->where('is_full_day', true);
+                    })
+                    ->first();
+                if ($conflictingStudent) {
+                    return response()->json([
+                        'message' => 'Cannot allocate this slot. The seat already has a full-day slot allocated.',
+                        'errors' => ['seat_no' => ['Seat already occupied by a full-day slot allocation.']]
+                    ], 422);
+                }
+            }
+        } elseif ($request->seat_no && !$request->slot_package_id) {
+            // Unreserved (null slot_package_id): check if seat has a full-day slot (excluding current student)
+            $conflictingStudent = Student::where('seat_no', $request->seat_no)
+                ->where('library_id', $student->library_id)
+                ->where('id', '!=', $student->id)
+                ->whereHas('slotPackage', function ($q) {
+                    $q->where('is_full_day', true);
+                })
+                ->first();
+            if ($conflictingStudent) {
+                return response()->json([
+                    'message' => 'Cannot allocate unreserved slot. The seat already has a full-day slot allocated.',
+                    'errors' => ['seat_no' => ['Seat already occupied by a full-day slot allocation.']]
+                ], 422);
+            }
+        }
 
         $userData = $request->only('name', 'email', 'phone', 'address', 'gender');
         if ($request->filled('password')) {
